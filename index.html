@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c0c0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ToneFinder">
+<meta name="description" content="Marshall DSL40 tone recommendations for Les Paul, Stratocaster and ES-335">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ToneFinder — Marshall DSL40</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --surface3: #2a2a2a;
+    --border: #333;
+    --border2: #444;
+    --accent: #e8420a;
+    --accent2: #f5a623;
+    --accent3: #4a9eff;
+    --text: #f0ede8;
+    --text2: #c8c4be;
+    --muted: #999;
+    --dim: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-brand { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; color: var(--text); }
+  .nav-brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-btn {
+    font-family: 'DM Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 6px 14px; border-radius: 4px;
+    border: 1px solid transparent;
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:hover { color: var(--text); border-color: var(--border2); }
+  .nav-btn.active { color: var(--accent2); border-color: var(--accent); background: #1a0e0a; }
+
+  /* PAGES */
+  .page { display: none; max-width: 700px; margin: 0 auto; padding: 1.75rem 1rem 4rem; }
+  .page.active { display: block; }
+
+  /* SHARED */
+  .mono-label {
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px;
+  }
+  .section-divider {
+    display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 1rem;
+  }
+  .sdlabel { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 0.1em; color: var(--accent); white-space: nowrap; }
+  .sdline { flex: 1; height: 1px; background: var(--border); }
+
+  /* TOGGLE SWITCH (reusable) */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px; margin-bottom: 10px;
+  }
+  .toggle-row-label { font-size: 13px; color: var(--text2); }
+  .toggle-row-label strong { color: var(--text); font-weight: 500; }
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+  .topt { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); transition: color 0.15s; }
+  .topt.on { color: var(--accent2); }
+
+  .tsw { position: relative; width: 44px; height: 24px; cursor: pointer; flex-shrink: 0; }
+  .tsw input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .ttrack {
+    position: absolute; inset: 0; border-radius: 12px;
+    background: #1a0e0a; border: 1px solid var(--accent); transition: all 0.2s;
+  }
+  .tthumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); transition: all 0.2s;
+  }
+  .tsw input:checked ~ .ttrack { background: #0a1520; border-color: var(--accent3); }
+  .tsw input:checked ~ .ttrack .tthumb { transform: translateX(20px); background: var(--accent3); }
+
+  .context-hint { font-size: 11px; color: var(--dim); margin-bottom: 1.25rem; font-style: italic; padding: 0 2px; line-height: 1.5; }
+
+  /* SONG INPUT */
+  .song-row { display: flex; gap: 8px; margin-bottom: 1.75rem; }
+  .song-row input {
+    flex: 1; height: 46px; padding: 0 14px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s;
+  }
+  .song-row input::placeholder { color: var(--dim); }
+  .song-row input:focus { border-color: var(--accent); }
+  .go-btn {
+    height: 46px; padding: 0 22px; border-radius: 6px;
+    border: none; background: var(--accent); color: #fff;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap;
+  }
+  .go-btn:hover { background: #c73608; }
+  .go-btn:active { transform: scale(0.97); }
+  .go-btn:disabled { background: #3a3a3a; color: var(--dim); cursor: not-allowed; transform: none; }
+
+  /* STATES */
+  .placeholder {
+    text-align: center; padding: 3rem 1rem;
+    border: 1px dashed var(--border); border-radius: 10px;
+    color: var(--dim); font-size: 13px; font-weight: 300;
+  }
+  .loading { text-align: center; padding: 3rem; color: var(--muted); font-size: 13px; }
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.75s linear infinite; margin-bottom: 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { padding: 14px; background: #1a0808; border: 1px solid #5a1a1a; border-radius: 6px; color: #f08080; font-size: 13px; }
+
+  .result { animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SONG CARD */
+  .song-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1.1rem;
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  }
+  .song-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.04em; line-height: 1; color: var(--text); }
+  .song-meta { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 300; }
+  .song-tags { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .ctx-tag {
+    font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 3px 8px; border-radius: 3px;
+  }
+  .badge {
+    font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
+    padding: 5px 12px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  /* GUITAR CARD */
+  .guitar-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem;
+  }
+  .card-title { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px; }
+  .guitar-toggle { display: flex; gap: 8px; flex-wrap: wrap; }
+  .guitar-opt {
+    flex: 1; padding: 10px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; text-align: left; transition: all 0.15s; appearance: none;
+  }
+  .guitar-opt:hover { border-color: var(--border2); }
+  .guitar-opt.recommended { border-color: var(--accent2); background: #1c1500; }
+  .guitar-opt.selected { border-color: var(--accent); background: #1c1000; }
+  .guitar-opt.recommended.selected { border-color: var(--accent); background: #1c1200; }
+  .guitar-opt .opt-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .guitar-opt.recommended .opt-name, .guitar-opt.selected .opt-name { color: var(--accent2); }
+  .guitar-opt .opt-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .rec-tag { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .guitar-reason { font-size: 12px; color: var(--text2); margin-top: 9px; font-style: italic; line-height: 1.5; }
+
+  .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 9px;
+    border-radius: 3px; border: 1px solid var(--border); color: var(--dim); background: transparent;
+  }
+  .chip.on { color: var(--accent2); border-color: var(--accent); background: #1a0e0a; }
+
+  /* AMP PANEL */
+  .amp-panel, .rv6-panel, .guitar-panel, .pedal-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; margin-bottom: 1.25rem;
+  }
+  .panel-header {
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    padding: 9px 14px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-name { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 0.08em; color: var(--muted); }
+
+  /* AMP SINGLE-ROW LAYOUT */
+  .amp-body { padding: 12px 14px 14px; }
+
+  .amp-row { display: flex; gap: 0; align-items: flex-start; }
+
+  /* Each group sits side-by-side */
+  .amp-group { display: flex; flex-direction: column; flex: 1; }
+  .amp-group + .amp-group { border-left: 1px solid var(--border); padding-left: 10px; margin-left: 10px; }
+
+  .amp-section-label {
+    font-family: 'DM Mono', monospace; font-size: 8px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 7px; white-space: nowrap;
+  }
+  .amp-group-knobs { display: flex; gap: 6px; }
+
+  /* COMPACT KNOB */
+  .knob-row { display: flex; gap: 8px; }
+  .knob {
+    flex: 1; background: var(--surface3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 5px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; min-width: 0;
+  }
+  .knob-label {
+    font-family: 'DM Mono', monospace; font-size: 8px;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;
+  }
+  .dial { width: 34px; height: 34px; margin-bottom: 3px; flex-shrink: 0; }
+  .dial svg { width: 100%; height: 100%; }
+  .knob-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; line-height: 1; color: var(--text); }
+  .knob.hot .knob-num { color: var(--accent2); }
+  .knob.hot .knob-label { color: var(--accent2); }
+
+  /* Channel mode dot */
+  .channel-mode-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle;
+  }
+
+  /* RV6 */
+  .rv6-mode-badge { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 9px; border-radius: 3px; background: #0a1520; color: var(--accent3); border: 1px solid #1a3a5a; }
+  .panel-body { padding: 12px 14px; }
+  .rv6-tip { font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.6; margin-top: 10px; }
+
+  /* GUITAR SETTINGS */
+  .guitar-knobs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .pickup-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 10px 12px;
+  }
+  .pu-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); margin-bottom: 4px; }
+  .pu-name { font-size: 14px; font-weight: 500; color: var(--accent2); margin-bottom: 3px; }
+  .pu-pos { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .pu-desc { font-size: 12px; color: var(--text2); margin-top: 5px; font-style: italic; line-height: 1.5; }
+
+  /* PEDAL PANEL */
+  .pedal-item { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  .pedal-item:last-child { border-bottom: none; }
+  .pedal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .pedal-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .pedal-role { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 3px; background: #1f1600; color: var(--accent2); border: 1px solid #4a3a00; }
+  .pedal-knobs { display: flex; gap: 8px; margin-bottom: 8px; }
+  .pedal-tip { font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.5; }
+
+  /* NOTES */
+  .notes-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; margin-bottom: 1.25rem; }
+  .notes-card p { font-size: 13px; color: var(--text2); line-height: 1.75; font-weight: 300; }
+
+  /* SETTINGS PAGE */
+  .settings-header { margin-bottom: 1.75rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
+  .settings-title { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 0.04em; color: var(--text); }
+  .settings-title span { color: var(--accent); }
+  .settings-sub { font-size: 12px; color: var(--muted); margin-top: 4px; font-weight: 300; }
+
+  .settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.1rem; }
+  .settings-card h3 { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .settings-card p { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+  .settings-card a { color: var(--accent2); text-decoration: none; }
+
+  .field-row { display: flex; gap: 8px; align-items: center; }
+  .field-row input {
+    flex: 1; height: 38px; padding: 0 12px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text);
+    font-size: 12px; font-family: 'DM Mono', monospace; outline: none;
+  }
+  .field-row input:focus { border-color: var(--accent); }
+  .field-btn {
+    height: 38px; padding: 0 16px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap;
+  }
+  .field-btn:hover { border-color: var(--accent); color: var(--text); }
+  .field-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .field-btn.primary:hover { background: #c73608; }
+
+  .status-msg { font-size: 12px; margin-top: 8px; display: none; }
+  .status-msg.ok { color: #6c6; }
+  .status-msg.err { color: #f08080; }
+
+  .backup-status-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px; margin-bottom: 12px;
+    font-size: 12px; color: var(--text2);
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .backup-status-row .key-dot { background: var(--dim); }
+
+  .key-status-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 6px; margin-bottom: 12px;
+    font-size: 12px; color: var(--text2);
+  }
+  .key-status-row.has-key { background: #0d1f0d; border: 1px solid #2a4a2a; color: #7dcc7d; }
+  .key-status-row.no-key { background: #1a1400; border: 1px solid #4a3a00; color: #c8922a; }
+  .key-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .has-key .key-dot { background: #6c6; }
+  .no-key .key-dot { background: var(--accent2); }
+
+  .rig-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .rig-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; }
+  .rig-item .ri-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); margin-bottom: 3px; }
+  .rig-item .ri-val { font-size: 13px; font-weight: 500; color: var(--text); }
+
+  footer { text-align: center; font-size: 11px; color: var(--dim); margin-top: 2.5rem; letter-spacing: 0.05em; }
+
+  /* SAVE BUTTON */
+  .save-song-btn {
+    display: block; width: 100%; margin-top: 1rem;
+    padding: 12px; border-radius: 8px;
+    border: 1px dashed var(--border2);
+    background: transparent; color: var(--muted);
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+  }
+  .save-song-btn:hover { border-color: var(--accent2); color: var(--accent2); background: #1a1400; }
+  .save-song-btn.saved { border-color: #2a4a2a; color: #7dcc7d; background: #0d1f0d; pointer-events: none; }
+
+  /* MY SONGS PAGE */
+  .songs-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 1.5rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--border);
+  }
+  .print-btn {
+    height: 36px; padding: 0 16px; border-radius: 6px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--text2); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap; margin-top: 6px;
+  }
+  .print-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* SONG ROW (library) */
+  .song-row-item {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 8px; overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .song-row-item:hover { border-color: var(--border2); }
+
+  .song-row-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; cursor: pointer; user-select: none;
+  }
+  .sri-title { font-size: 14px; font-weight: 500; color: #ffffff; flex: 1; }
+  .sri-meta { font-size: 11px; color: var(--muted); }
+  .sri-guitar { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; background: #1a1400; color: var(--accent2); border: 1px solid #4a3a00; white-space: nowrap; }
+  .sri-badge { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+  .sri-context { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); white-space: nowrap; }
+  .sri-chevron { color: var(--dim); font-size: 11px; transition: transform 0.2s; flex-shrink: 0; }
+  .song-row-item.expanded .sri-chevron { transform: rotate(90deg); }
+  .delete-confirm {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 8px 10px; margin-bottom: 10px;
+    background: #1a0808; border: 1px solid #5a1a1a; border-radius: 6px;
+  }
+  .delete-confirm span { flex: 1; }
+  .dc-yes {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid #5a1a1a;
+    background: #a32d2d; color: #fff; font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dc-yes:hover { background: #c03030; }
+  .dc-no {
+    padding: 4px 12px; border-radius: 4px; border: 1px solid var(--border2);
+    background: var(--surface3); color: var(--text2); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .dc-no:hover { color: var(--text); }
+
+  .edit-btn {
+    background: transparent; border: 1px solid var(--border2); color: var(--muted);
+    font-size: 11px; padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .edit-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* EDIT FORM */
+  .edit-form { background: var(--surface3); border-radius: 8px; padding: 12px 14px; }
+  .edit-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .edit-row-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); width: 100%; margin-bottom: 4px; }
+  .edit-field { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .edit-field label { font-family: 'DM Mono', monospace; font-size: 8px; text-transform: uppercase; color: var(--muted); }
+  .edit-field input[type=range] { width: 64px; accent-color: var(--accent2); cursor: pointer; }
+  .edit-field .eval { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #fff; line-height: 1; min-width: 16px; text-align: center; }
+  .edit-field select {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    font-size: 11px; padding: 3px 6px; border-radius: 4px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .edit-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .save-edit-btn {
+    padding: 6px 16px; border-radius: 5px; border: none;
+    background: var(--accent); color: #fff; font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+  }
+  .save-edit-btn:hover { background: #c73608; }
+  .cancel-edit-btn {
+    padding: 6px 14px; border-radius: 5px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); font-size: 12px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .cancel-edit-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  .sri-delete { background: #1a0808; border: 1px solid #5a1a1a; color: #f08080; cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-family: 'DM Sans', sans-serif; }
+  .sri-delete:hover { background: #2a0a0a; color: #ff9090; }
+
+  .song-row-detail {
+    display: none; border-top: 1px solid var(--border);
+    padding: 14px; background: var(--surface2);
+  }
+  .song-row-item.expanded .song-row-detail { display: block; }
+
+  /* GROUPED AMP SECTIONS in song detail */
+  .detail-amp-row { display: flex; gap: 0; align-items: flex-start; margin-top: 6px; }
+  .detail-amp-group { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .detail-amp-group + .detail-amp-group { border-left: 1px solid var(--border); padding-left: 8px; margin-left: 8px; }
+  .detail-amp-label { font-family: 'DM Mono', monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .detail-amp-group .detail-knob-row { flex-wrap: nowrap; }
+  .detail-amp-group .detail-knob { flex: 1; min-width: 0; padding: 5px 4px; }
+  .detail-amp-group .dk-label { font-size: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .detail-amp-group .dk-val { font-size: 16px; }
+
+  /* DRAG HANDLE */
+  .drag-handle {
+    font-size: 16px; color: var(--dim); cursor: grab; padding: 0 6px 0 2px;
+    flex-shrink: 0; user-select: none; line-height: 1;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .song-row-item.drag-over { border-color: var(--accent2); background: #1a1400; }
+  .song-row-item.dragging { opacity: 0.4; }
+
+  /* COMPACT SETTINGS SUMMARY in row detail */
+  .detail-section { margin-bottom: 12px; }
+  .detail-section-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); margin-bottom: 6px; }
+  .detail-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .detail-chip { font-family: 'DM Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 3px; border: 1px solid var(--border2); color: var(--text); background: var(--surface3); }
+  .detail-chip.hi { color: var(--accent2); border-color: var(--accent); background: #1a0e0a; }
+  .detail-knob-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .detail-knob { background: var(--surface3); border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; text-align: center; min-width: 44px; }
+  .detail-knob .dk-label { font-family: 'DM Mono', monospace; font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text2); }
+  .detail-knob .dk-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #ffffff; line-height: 1.1; }
+  .detail-notes { font-size: 12px; color: var(--text); font-style: italic; line-height: 1.6; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
+
+  /* ── RESPONSIVE ── */
+
+  /* Tablet (≤600px) */
+  @media (max-width: 600px) {
+    nav { padding: 10px 1rem; }
+    .nav-btn { font-size: 10px; padding: 5px 10px; letter-spacing: 0.04em; }
+
+    .page { padding: 1.25rem 0.75rem 4rem; }
+
+    /* Header */
+    div[style*="font-size:42px"] { font-size: 32px !important; }
+
+    /* Toggle rows — stack label and toggle */
+    .toggle-row { flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
+    .toggle-row-label { font-size: 12px; flex: 1; min-width: 0; }
+
+    /* Song input — keep on one row but shrink button */
+    .song-row input { font-size: 13px; height: 42px; }
+    .go-btn { height: 42px; padding: 0 14px; font-size: 13px; }
+
+    /* Guitar toggle — 1 per row on phone */
+    .guitar-toggle { flex-direction: column; }
+    .guitar-opt { width: 100%; }
+
+    /* Amp row — 2x2 grid on tablet */
+    .amp-row { flex-wrap: wrap; }
+    .amp-group { flex: 1 1 45%; min-width: 0; }
+    .amp-group + .amp-group { border-left: none; padding-left: 0; margin-left: 0; }
+    .amp-group:nth-child(2) { border-left: 1px solid var(--border); padding-left: 10px; margin-left: 10px; }
+    .amp-group:nth-child(3) { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; }
+    .amp-group:nth-child(4) { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; border-left: 1px solid var(--border); padding-left: 10px; margin-left: 10px; }
+
+    /* Section divider — hide chip row on small screens, show below */
+    .section-divider { flex-wrap: wrap; gap: 8px; }
+    .chip-row { width: 100%; }
+
+    /* Song row header tags — wrap more gracefully */
+    .song-row-header { flex-wrap: wrap; gap: 6px; padding: 10px 10px; }
+    .sri-title { width: 100%; font-size: 13px; }
+    .sri-meta { display: none; }
+
+    /* Result song card */
+    .song-card { flex-wrap: wrap; }
+    .song-tags { flex-wrap: wrap; }
+
+    /* RV6 knobs row */
+    .knob-row { gap: 6px; }
+    .knob { padding: 6px 4px; }
+    .knob-num { font-size: 18px; }
+    .dial { width: 30px; height: 30px; }
+
+    /* Guitar knobs */
+    .guitar-knobs { gap: 6px; }
+
+    /* Detail amp row in My Songs — stack 2x2 */
+    .detail-amp-row { flex-wrap: wrap; }
+    .detail-amp-group { flex: 1 1 45%; min-width: 0; }
+    .detail-amp-group + .detail-amp-group { border-left: none; padding-left: 0; margin-left: 0; }
+    .detail-amp-group:nth-child(2) { border-left: 1px solid var(--border); padding-left: 6px; margin-left: 6px; }
+    .detail-amp-group:nth-child(3) { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 6px; }
+    .detail-amp-group:nth-child(4) { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 6px; border-left: 1px solid var(--border); padding-left: 6px; margin-left: 6px; }
+
+    /* Edit form sliders — bigger touch targets */
+    .edit-field input[type=range] { width: 80px; height: 28px; }
+    .edit-row { gap: 10px; }
+
+    /* Songs header */
+    .songs-header { flex-direction: column; gap: 10px; }
+    .songs-header > div:last-child { display: flex; gap: 8px; width: 100%; }
+    .print-btn { flex: 1; text-align: center; }
+
+    /* Settings rig grid */
+    .rig-info { grid-template-columns: 1fr; }
+
+    /* Pickup box */
+    .pickup-box { padding: 8px 10px; }
+    .pu-name { font-size: 13px; }
+  }
+
+  /* Phone (≤400px) — extra tweaks */
+  @media (max-width: 400px) {
+    .nav-btn { font-size: 9px; padding: 5px 8px; }
+    .nav-brand { font-size: 18px; }
+    .go-btn { padding: 0 10px; font-size: 12px; }
+
+    /* Amp groups stack fully on tiny screens */
+    .amp-group { flex: 1 1 100%; }
+    .amp-group:nth-child(2),
+    .amp-group:nth-child(3),
+    .amp-group:nth-child(4) {
+      border-left: none; padding-left: 0; margin-left: 0;
+      border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;
+    }
+
+    .detail-amp-group { flex: 1 1 100%; }
+    .detail-amp-group:nth-child(2),
+    .detail-amp-group:nth-child(3),
+    .detail-amp-group:nth-child(4) {
+      border-left: none; padding-left: 0; margin-left: 0;
+      border-top: 1px solid var(--border); padding-top: 6px; margin-top: 6px;
+    }
+
+    /* Song row tags — show fewer */
+    .sri-badge, .sri-context { display: none; }
+    .sri-guitar { font-size: 8px; }
+  }
+
+  /* iPad / large tablet (601px–900px) — minor tweaks only */
+  @media (min-width: 601px) and (max-width: 900px) {
+    .page { padding: 1.5rem 1.25rem 4rem; }
+    .guitar-toggle { flex-wrap: wrap; }
+    .guitar-opt { flex: 1 1 45%; }
+  }
+  #print-area { display: none; }
+
+  @media print {
+    body > *:not(#print-area) { display: none !important; }
+    #print-area { display: block !important; font-family: Arial, sans-serif; color: #000; background: #fff; margin: 0; padding: 8px; }
+    .phead { margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+    .phead h2 { font-size: 13px; margin: 0 0 1px; font-weight: bold; }
+    .phead p { font-size: 8px; color: #555; margin: 0; }
+    .prow { border: 1px solid #bbb; margin-bottom: 4px; page-break-inside: avoid; }
+    .pr1 { display: flex; align-items: center; gap: 6px; padding: 3px 6px; background: #f0f0f0; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+    .pr1-title { font-size: 10px; font-weight: bold; color: #000; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pr1-tag { font-size: 7px; font-family: monospace; padding: 1px 4px; border: 1px solid #ccc; background: #fff; border-radius: 2px; color: #333; white-space: nowrap; }
+    .pr1-tag.hi { background: #fff3e0; border-color: #e0a020; color: #7a4a00; }
+    .pr2 { display: flex; align-items: center; gap: 0; padding: 3px 6px; }
+    .pr2-group { display: flex; align-items: center; gap: 3px; padding-right: 7px; margin-right: 7px; border-right: 1px solid #ddd; }
+    .pr2-group:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+    .pr2-lbl { font-size: 6px; font-family: monospace; color: #888; text-transform: uppercase; margin-right: 2px; white-space: nowrap; }
+    .pr2-knob { text-align: center; }
+    .pr2-knob .kl { font-size: 6px; font-family: monospace; color: #888; text-transform: uppercase; }
+    .pr2-knob .kv { font-size: 11px; font-weight: bold; color: #000; line-height: 1; }
+    .pr2-sep { color: #ccc; font-size: 8px; margin: 0 1px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Tone<span>Finder</span></div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="showPage('main', this)">Tone</button>
+    <button class="nav-btn" onclick="showPage('songs', this)">My Songs <span id="songs-count" style="display:none;background:var(--accent);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;vertical-align:middle"></span></button>
+    <button class="nav-btn" onclick="showPage('settings', this)">Settings</button>
+  </div>
+</nav>
+
+<!-- ══ MAIN PAGE ══ -->
+<div class="page active" id="page-main">
+
+  <div style="margin-bottom:1.5rem;padding-bottom:1.1rem;border-bottom:1px solid var(--border)">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:0.04em;line-height:1">Tone<span style="color:var(--accent)">Finder</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;font-weight:300">Marshall DSL40 · Les Paul · Stratocaster · ES-335</div>
+  </div>
+
+  <!-- Toggles -->
+  <div class="toggle-row">
+    <div class="toggle-row-label">Context: <strong id="lbl-context">Playing Solo</strong></div>
+    <div class="toggle-wrap">
+      <span class="topt on" id="opt-solo">Solo</span>
+      <label class="tsw">
+        <input type="checkbox" id="tog-band" onchange="updateToggles()">
+        <div class="ttrack"><div class="tthumb"></div></div>
+      </label>
+      <span class="topt" id="opt-band">Band</span>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <div class="toggle-row-label">Use <strong>Reverb Pedal</strong> (Boss RV-6)</div>
+    <div class="toggle-wrap">
+      <span class="topt" id="opt-reverb-no">No</span>
+      <label class="tsw">
+        <input type="checkbox" id="tog-reverb" checked onchange="updateToggles()">
+        <div class="ttrack"><div class="tthumb"></div></div>
+      </label>
+      <span class="topt on" id="opt-reverb-yes">Yes</span>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <div class="toggle-row-label">Use <strong>Pedals if Recommended</strong> <span style="font-size:11px;color:var(--dim)">(Tube Screamer · Boss DS-2)</span></div>
+    <div class="toggle-wrap">
+      <span class="topt on" id="opt-pedal-no">No</span>
+      <label class="tsw">
+        <input type="checkbox" id="tog-pedals" onchange="updateToggles()">
+        <div class="ttrack"><div class="tthumb"></div></div>
+      </label>
+      <span class="topt" id="opt-pedal-yes">Yes</span>
+    </div>
+  </div>
+
+  <div class="context-hint" id="ctx-hint">Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.</div>
+
+  <div class="mono-label">Enter a song</div>
+  <div class="song-row">
+    <input type="text" id="song-input" placeholder="e.g. Comfortably Numb, Back in Black, Texas Flood..." />
+    <button class="go-btn" id="go-btn" onclick="getSettings()">Get tone →</button>
+  </div>
+  <div style="position:relative;margin-top:-1.25rem;margin-bottom:1.75rem">
+    <input type="text" id="hint-input" placeholder="Optional tone hint — e.g. bridge pickup, lead part, edge of breakup, SRV style..."
+      style="width:100%;height:36px;padding:0 14px 0 30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;color:var(--muted)"
+      onfocus="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'"
+      onblur="this.style.borderColor='var(--border)';if(!this.value)this.style.color='var(--muted)'">
+    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--dim);pointer-events:none">✎</span>
+  </div>
+
+  <div id="result-area">
+    <div class="placeholder">Enter any song — the app recommends your guitar and dials in every setting</div>
+  </div>
+
+  <footer>Marshall DSL40 · Gibson Les Paul · Fender Stratocaster · Epiphone ES-335 · Boss RV-6</footer>
+</div>
+
+<!-- ══ MY SONGS PAGE ══ -->
+<div class="page" id="page-songs">
+  <div class="songs-header">
+    <div>
+      <div class="settings-title">My <span>Songs</span></div>
+      <div class="settings-sub">Saved tone settings — click any song to expand</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:flex-start;margin-top:6px;flex-wrap:wrap">
+      <button class="print-btn" id="print-btn" onclick="printSongs()">⎙ Print</button>
+      <button class="print-btn" id="export-btn" onclick="exportSelected()">⬇ Export</button>
+    </div>
+  </div>
+
+  <div id="selection-bar" style="display:none;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:10px">
+    <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text2)">
+      <input type="checkbox" id="select-all-chk" onchange="toggleSelectAll(this.checked)" style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer">
+      <span id="selection-label" style="color:var(--text2)">Select all</span>
+    </label>
+    <span style="flex:1"></span>
+    <span id="selection-count" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)"></span>
+  </div>
+
+  <div id="songs-empty" class="placeholder" style="margin-top:1rem">No songs saved yet — dial in a tone on the Tone tab and hit "Save to My Songs"</div>
+  <div id="songs-list"></div>
+</div>
+
+<!-- ══ SETTINGS PAGE ══ -->
+<div class="page" id="page-settings">
+
+  <div class="settings-header">
+    <div class="settings-title">App <span>Settings</span></div>
+    <div class="settings-sub">Manage your API key and rig info</div>
+  </div>
+
+  <div class="settings-card">
+    <h3>Anthropic API Key</h3>
+    <p>Required to power AI tone recommendations. Get your key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Saved only in your browser's local storage.</p>
+    <div class="key-status-row no-key" id="key-status-row">
+      <div class="key-dot"></div>
+      <span id="key-status-text">No API key saved</span>
+    </div>
+    <div class="field-row">
+      <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+      <button class="field-btn primary" onclick="saveKey()">Save key</button>
+      <button class="field-btn" onclick="clearKey()">Clear</button>
+    </div>
+    <div class="status-msg ok" id="key-save-ok">✓ Key saved successfully</div>
+    <div class="status-msg err" id="key-save-err">Please enter a valid key starting with sk-ant-</div>
+  </div>
+
+  <div class="settings-card">
+    <h3>Song Library — Backup &amp; Restore</h3>
+    <p>Export your saved songs to a JSON file you can keep on your computer, Dropbox, or Google Drive. Import it any time to restore your library — on this computer or another one.</p>
+
+    <div class="backup-status-row" id="backup-status-row">
+      <div class="key-dot" id="backup-dot"></div>
+      <span id="backup-status-text">Loading...</span>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="field-btn primary" onclick="exportSongs()">⬇ Export songs.json</button>
+      <button class="field-btn" onclick="document.getElementById('import-file').click()">⬆ Import from file</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importSongs(event)">
+    </div>
+    <div class="status-msg ok" id="export-ok">✓ Exported successfully</div>
+    <div class="status-msg ok" id="import-ok"></div>
+    <div class="status-msg err" id="import-err"></div>
+
+    <p style="margin-top:10px;margin-bottom:0;font-size:11px;color:var(--dim)">Tip: save the exported file somewhere safe like Dropbox or Google Drive so you never lose it.</p>
+  </div>
+
+  <div class="settings-card">
+    <h3>Your Rig</h3>
+    <p>All recommendations are calibrated to this setup.</p>
+    <div class="rig-info">
+      <div class="rig-item"><div class="ri-label">Amp</div><div class="ri-val">Marshall DSL40</div></div>
+      <div class="rig-item"><div class="ri-label">Reverb</div><div class="ri-val">Boss RV-6</div></div>
+      <div class="rig-item"><div class="ri-label">Guitar 1</div><div class="ri-val">Gibson Les Paul</div></div>
+      <div class="rig-item"><div class="ri-label">Guitar 2</div><div class="ri-val">Fender Stratocaster</div></div>
+      <div class="rig-item"><div class="ri-label">Guitar 3</div><div class="ri-val">Epiphone ES-335 (1962 inspired)</div></div>
+      <div class="rig-item"><div class="ri-label">Pedal 1</div><div class="ri-val">Ibanez Tube Screamer</div></div>
+      <div class="rig-item"><div class="ri-label">Pedal 2</div><div class="ri-val">Boss DS-2</div></div>
+    </div>
+  </div>
+
+  <footer>ToneFinder · Marshall DSL40</footer>
+</div>
+
+<script>
+let currentData = null;
+let selectedGuitar = null;
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'settings') { refreshKeyStatus(); refreshBackupStatus(); }
+  if (id === 'songs') renderSongLibrary();
+}
+
+function updateToggles() {
+  const isBand = document.getElementById('tog-band').checked;
+  const useReverb = document.getElementById('tog-reverb').checked;
+  const usePedals = document.getElementById('tog-pedals').checked;
+
+  document.getElementById('opt-solo').classList.toggle('on', !isBand);
+  document.getElementById('opt-band').classList.toggle('on', isBand);
+  document.getElementById('lbl-context').textContent = isBand ? 'Playing With a Band' : 'Playing Solo';
+
+  document.getElementById('opt-reverb-no').classList.toggle('on', !useReverb);
+  document.getElementById('opt-reverb-yes').classList.toggle('on', useReverb);
+  document.getElementById('opt-pedal-no').classList.toggle('on', !usePedals);
+  document.getElementById('opt-pedal-yes').classList.toggle('on', usePedals);
+
+  const hints = {
+    true:  'Band mix: cut mids to carve space, tighter bass, less reverb — sitting alongside drums, bass, and keys.',
+    false: 'Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.'
+  };
+  document.getElementById('ctx-hint').textContent = hints[isBand];
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val || !val.startsWith('sk-ant-')) { flash('key-save-err'); return; }
+  localStorage.setItem('anthropic_api_key', val);
+  flash('key-save-ok');
+  refreshKeyStatus();
+}
+function clearKey() {
+  localStorage.removeItem('anthropic_api_key');
+  document.getElementById('api-key-input').value = '';
+  refreshKeyStatus();
+}
+function refreshKeyStatus() {
+  const key = localStorage.getItem('anthropic_api_key');
+  const row = document.getElementById('key-status-row');
+  const txt = document.getElementById('key-status-text');
+  if (key) {
+    row.className = 'key-status-row has-key';
+    txt.textContent = '✓ API key saved (' + key.slice(0, 14) + '••••)';
+  } else {
+    row.className = 'key-status-row no-key';
+    txt.textContent = 'No API key saved';
+  }
+}
+function refreshBackupStatus() {
+  const songs = getSavedSongs();
+  const dot = document.getElementById('backup-dot');
+  const txt = document.getElementById('backup-status-text');
+  if (!dot || !txt) return;
+  if (songs.length === 0) {
+    dot.style.background = 'var(--dim)';
+    txt.textContent = 'No songs in library yet';
+  } else {
+    dot.style.background = '#6c6';
+    const newest = new Date(Math.max(...songs.map(s => s.id)));
+    txt.textContent = `${songs.length} song${songs.length > 1 ? 's' : ''} saved · Last added ${newest.toLocaleDateString()}`;
+  }
+}
+
+function exportSelected() {
+  const ids = getSelectedIds();
+  if (!ids.length) { showInlineMsg('Please check at least one song to export.'); return; }
+  const all = getSavedSongs();
+  const songs = all.filter(s => ids.includes(s.id));
+  const payload = { app: 'ToneFinder', version: 1, exported: new Date().toISOString(), songs };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = songs.length === all.length ? 'tonefinder-songs.json' : 'tonefinder-selected.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showInlineMsg(msg) {
+  let el = document.getElementById('songs-inline-msg');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'songs-inline-msg';
+    el.style.cssText = 'padding:10px 14px;background:#1a1400;border:1px solid #4a3a00;border-radius:6px;color:#f5a623;font-size:12px;margin-bottom:10px';
+    document.getElementById('songs-list').before(el);
+  }
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function exportSongs() {
+  // Settings page export — always exports all
+  const songs = getSavedSongs();
+  if (!songs.length) { showInlineMsg('No songs to export yet.'); return; }
+  const payload = { app: 'ToneFinder', version: 1, exported: new Date().toISOString(), songs };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tonefinder-songs.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  flash('export-ok');
+}
+
+function importSongs(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Accept both raw array and wrapped export format
+      const incoming = Array.isArray(parsed) ? parsed : (parsed.songs || []);
+      if (!incoming.length) throw new Error('No songs found in file');
+
+      const existing = getSavedSongs();
+      const existingIds = new Set(existing.map(s => s.id));
+      const newSongs = incoming.filter(s => !existingIds.has(s.id));
+      const merged = [...existing, ...newSongs];
+      setSavedSongs(merged);
+      refreshBackupStatus();
+      renderSongLibrary();
+
+      const msg = document.getElementById('import-ok');
+      msg.textContent = `✓ Imported ${newSongs.length} new song${newSongs.length !== 1 ? 's' : ''}${incoming.length - newSongs.length > 0 ? ` (${incoming.length - newSongs.length} already existed, skipped)` : ''}`;
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 4000);
+    } catch(err) {
+      const msg = document.getElementById('import-err');
+      msg.textContent = 'Could not read file: ' + err.message;
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 4000);
+    }
+    // Reset file input so same file can be re-imported if needed
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function flash(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function selectGuitar(g) { selectedGuitar = g; renderResult(currentData); }
+
+function dialSVG(value, color) {
+  const pct = Math.min(Math.max(value, 0), 10) / 10;
+  const deg = pct * 260;
+  const startRad = -220 * Math.PI / 180;
+  const endRad = startRad + deg * Math.PI / 180;
+  const r = 14; const cx = 18; const cy = 18;
+  const x1 = (cx + r * Math.cos(startRad)).toFixed(2);
+  const y1 = (cy + r * Math.sin(startRad)).toFixed(2);
+  const x2 = (cx + r * Math.cos(endRad)).toFixed(2);
+  const y2 = (cy + r * Math.sin(endRad)).toFixed(2);
+  const large = deg > 180 ? 1 : 0;
+  const c = color || '#e8420a';
+  return `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="18" r="14" stroke="#333" stroke-width="3"/>
+    ${deg > 0 ? `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>` : ''}
+    <circle cx="${x2}" cy="${y2}" r="2" fill="#f5a623"/>
+  </svg>`;
+}
+
+function knobHTML(label, val, color, hot) {
+  return `<div class="knob${hot ? ' hot' : ''}">
+    <div class="knob-label">${label}</div>
+    <div class="dial">${dialSVG(val, color)}</div>
+    <div class="knob-num">${val}</div>
+  </div>`;
+}
+
+function renderResult(s) {
+  if (!s) return;
+  const isLP = selectedGuitar === 'lp';
+  const isStrat = selectedGuitar === 'strat';
+  const is335 = selectedGuitar === 'es335';
+  // Pull the full per-guitar profile (amp + guitar settings)
+  const p = isLP ? s.lespaul : is335 ? s.es335 : s.strat;
+  const guitarLabel = isLP ? 'Gibson Les Paul' : is335 ? 'Epiphone ES-335' : 'Fender Stratocaster';
+  const isBand = document.getElementById('tog-band').checked;
+  const useReverb = document.getElementById('tog-reverb').checked;
+  const usePedals = document.getElementById('tog-pedals').checked;
+
+  const badgeStyles = {
+    'Clean':  { bg: '#0d1f0d', color: '#7dcc7d', border: '#2a4a2a' },
+    'Crunch': { bg: '#1f1600', color: '#f5a623', border: '#4a3a00' },
+    'Lead':   { bg: '#0a1520', color: '#6aabf0', border: '#1a3a5a' },
+    'Heavy':  { bg: '#1a0808', color: '#f08080', border: '#4a1a1a' }
+  };
+  const bs = badgeStyles[p.toneBadge] || badgeStyles['Crunch'];
+  const ctxBg = isBand ? '#0a1520' : '#1a0e0a';
+  const ctxColor = isBand ? '#4a9eff' : '#f5a623';
+
+  // Pedal section HTML
+  let pedalHTML = '';
+  if (usePedals && p.pedals && p.pedals.length > 0) {
+    const pedalItems = p.pedals.map(pd => {
+      const pedalKnobs = pd.knobs.map(k => knobHTML(k.label, k.value, '#f5a623', false)).join('');
+      return `<div class="pedal-item">
+        <div class="pedal-header">
+          <div class="pedal-name">${pd.name}</div>
+          <span class="pedal-role">${pd.role}</span>
+        </div>
+        <div class="pedal-knobs">${pedalKnobs}</div>
+        <div class="pedal-tip">${pd.tip}</div>
+      </div>`;
+    }).join('');
+    pedalHTML = `
+      <div class="section-divider">
+        <div class="sdlabel">Pedals</div>
+        <div class="sdline"></div>
+      </div>
+      <div class="pedal-panel">${pedalItems}</div>`;
+  }
+
+  // RV6 section HTML
+  let rv6HTML = '';
+  if (useReverb && p.rv6) {
+    rv6HTML = `
+      <div class="section-divider">
+        <div class="sdlabel">Boss RV-6 Reverb</div>
+        <div class="sdline"></div>
+      </div>
+      <div class="rv6-panel">
+        <div class="panel-header">
+          <div class="panel-name">Boss RV-6</div>
+          <span class="rv6-mode-badge">${p.rv6.mode} Mode</span>
+        </div>
+        <div class="panel-body">
+          <div class="knob-row">
+            ${knobHTML('Level', p.rv6.level, '#4a9eff', false)}
+            ${knobHTML('Time', p.rv6.time, '#4a9eff', false)}
+            ${knobHTML('Tone', p.rv6.tone, '#4a9eff', false)}
+          </div>
+          <div class="rv6-tip">${p.rv6.tip}</div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('result-area').innerHTML = `<div class="result">
+
+    <div class="song-card">
+      <div>
+        <div class="song-title">${s.song}</div>
+        <div class="song-meta">${s.artist} &nbsp;·&nbsp; ${s.genre}</div>
+        <div class="song-tags">
+          <span class="ctx-tag" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44">${isBand ? 'Band Mix' : 'Solo'}</span>
+          ${useReverb ? '<span class="ctx-tag" style="background:#0a1520;color:#4a9eff;border:1px solid #1a3a5a44">RV-6 On</span>' : ''}
+          ${usePedals && p.pedals && p.pedals.length > 0 ? '<span class="ctx-tag" style="background:#1f1600;color:#f5a623;border:1px solid #4a3a0044">Pedals</span>' : ''}
+          ${document.getElementById('hint-input').value.trim() ? `<span class="ctx-tag" style="background:#0f1a0f;color:#7dcc7d;border:1px solid #2a4a2a44">✎ ${document.getElementById('hint-input').value.trim()}</span>` : ''}
+        </div>
+      </div>
+      <span class="badge" style="background:${bs.bg};color:${bs.color};border:1px solid ${bs.border}">${p.toneBadge}</span>
+    </div>
+
+    <div class="guitar-card">
+      <div class="card-title">Recommended guitar — click to switch (all settings update)</div>
+      <div class="guitar-toggle">
+        <button class="guitar-opt ${s.recommendedGuitar === 'lp' ? 'recommended' : ''} ${selectedGuitar === 'lp' ? 'selected' : ''}" onclick="selectGuitar('lp')">
+          ${s.recommendedGuitar === 'lp' ? '<div class="rec-tag">★ Recommended</div>' : ''}
+          <div class="opt-name">Gibson Les Paul</div>
+          <div class="opt-sub">Humbuckers · Warm &amp; thick</div>
+        </button>
+        <button class="guitar-opt ${s.recommendedGuitar === 'strat' ? 'recommended' : ''} ${selectedGuitar === 'strat' ? 'selected' : ''}" onclick="selectGuitar('strat')">
+          ${s.recommendedGuitar === 'strat' ? '<div class="rec-tag">★ Recommended</div>' : ''}
+          <div class="opt-name">Fender Stratocaster</div>
+          <div class="opt-sub">Single-coils · Bright &amp; clear</div>
+        </button>
+        <button class="guitar-opt ${s.recommendedGuitar === 'es335' ? 'recommended' : ''} ${selectedGuitar === 'es335' ? 'selected' : ''}" onclick="selectGuitar('es335')">
+          ${s.recommendedGuitar === 'es335' ? '<div class="rec-tag">★ Recommended</div>' : ''}
+          <div class="opt-name">Epiphone ES-335</div>
+          <div class="opt-sub">Semi-hollow · Warm &amp; airy</div>
+        </button>
+      </div>
+      <div class="guitar-reason">${s.guitarReason}</div>
+    </div>
+
+    <div class="section-divider">
+      <div class="sdlabel">Marshall DSL40</div>
+      <div class="sdline"></div>
+      <div class="chip-row">
+        <span class="chip on">
+          <span class="channel-mode-dot" style="background:${p.channelMode === 'red' ? '#e84040' : '#40c060'}"></span>${p.channel} · ${p.channelMode === 'red' ? 'Red' : 'Green'}
+        </span>
+        <span class="chip ${p.toneShift ? 'on' : ''}">Tone Shift ${p.toneShift ? 'ON' : 'OFF'}</span>
+      </div>
+    </div>
+
+    <div class="amp-panel">
+      <div class="amp-body">
+        <div class="amp-row">
+          <div class="amp-group">
+            <div class="amp-section-label">① Gain &amp; Ch. Vol</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Gain', p.gain, '#e8420a', p.gain > 7)}
+              ${knobHTML('Ch. Vol', p.channelVolume, '#e8420a', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">② Treble / Mid / Bass</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Treble', p.treble, '#f5a623', false)}
+              ${knobHTML('Mid', p.middle, '#f5a623', false)}
+              ${knobHTML('Bass', p.bass, '#f5a623', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">③ Presence / Resonance</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Presence', p.presence, '#4a9eff', false)}
+              ${knobHTML('Resonance', p.resonance, '#4a9eff', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">④ Master</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Master', p.masterVolume, '#888', false)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${rv6HTML}
+    ${pedalHTML}
+
+    <div class="section-divider">
+      <div class="sdlabel">${guitarLabel}</div>
+      <div class="sdline"></div>
+    </div>
+
+    <div class="guitar-panel">
+      <div class="panel-header">
+        <div class="panel-name">${guitarLabel} — Guitar Settings</div>
+      </div>
+      <div class="panel-body">
+        <div class="guitar-knobs">
+          ${knobHTML('Volume', p.volume, '#f5a623', false)}
+          ${knobHTML('Tone', p.tone, '#f5a623', false)}
+        </div>
+        <div class="pickup-box">
+          <div class="pu-label">Pickup selection</div>
+          <div class="pu-name">${p.pickupName}</div>
+          <div class="pu-pos">Position ${p.pickupPosition} on the selector switch</div>
+          <div class="pu-desc">${p.pickupDesc}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes-card">
+      <p>${p.notes}</p>
+    </div>
+
+    <button class="save-song-btn" onclick="saveSong()">＋ Save to My Songs</button>
+
+  </div>`;
+}
+
+// ── SONG LIBRARY ──
+function getSavedSongs() {
+  try { return JSON.parse(localStorage.getItem('tonefinder_songs') || '[]'); } catch { return []; }
+}
+function setSavedSongs(songs) {
+  localStorage.setItem('tonefinder_songs', JSON.stringify(songs));
+  updateSongsBadge();
+  refreshBackupStatus();
+}
+function updateSongsBadge() {
+  const songs = getSavedSongs();
+  const el = document.getElementById('songs-count');
+  if (songs.length > 0) { el.style.display = 'inline'; el.textContent = songs.length; }
+  else { el.style.display = 'none'; }
+}
+
+function saveSong() {
+  if (!currentData) return;
+  const isBand = document.getElementById('tog-band').checked;
+  const useReverb = document.getElementById('tog-reverb').checked;
+  const p = selectedGuitar === 'lp' ? currentData.lespaul : selectedGuitar === 'es335' ? currentData.es335 : currentData.strat;
+  const guitarLabel = selectedGuitar === 'lp' ? 'Les Paul' : selectedGuitar === 'es335' ? 'ES-335' : 'Stratocaster';
+
+  const entry = {
+    id: Date.now(),
+    song: currentData.song,
+    artist: currentData.artist,
+    genre: currentData.genre,
+    guitar: selectedGuitar,
+    guitarLabel,
+    context: isBand ? 'Band' : 'Solo',
+    useReverb,
+    toneBadge: p.toneBadge,
+    channel: p.channel,
+    channelMode: p.channelMode,
+    toneShift: p.toneShift,
+    gain: p.gain, channelVolume: p.channelVolume,
+    treble: p.treble, middle: p.middle, bass: p.bass,
+    presence: p.presence, resonance: p.resonance, masterVolume: p.masterVolume,
+    rv6: useReverb ? p.rv6 : null,
+    pedals: p.pedals || [],
+    volume: p.volume, tone: p.tone,
+    pickupName: p.pickupName, pickupPosition: p.pickupPosition,
+    notes: p.notes
+  };
+
+  const songs = getSavedSongs();
+  // Avoid exact duplicates (same song + guitar + context)
+  const exists = songs.find(s => s.song === entry.song && s.guitar === entry.guitar && s.context === entry.context);
+  if (!exists) songs.push(entry);
+  setSavedSongs(songs);
+
+  const btn = document.querySelector('.save-song-btn');
+  if (btn) { btn.textContent = exists ? '✓ Already saved' : '✓ Saved!'; btn.classList.add('saved'); }
+}
+
+function renderSongLibrary() {
+  const songs = getSavedSongs();
+  const empty = document.getElementById('songs-empty');
+  const list = document.getElementById('songs-list');
+  if (!songs.length) { empty.style.display = 'block'; list.innerHTML = ''; return; }
+  empty.style.display = 'none';
+
+  const badgeStyles = {
+    'Clean':  'background:#0d1f0d;color:#7dcc7d;border:1px solid #2a4a2a',
+    'Crunch': 'background:#1f1600;color:#f5a623;border:1px solid #4a3a00',
+    'Lead':   'background:#0a1520;color:#6aabf0;border:1px solid #1a3a5a',
+    'Heavy':  'background:#1a0808;color:#f08080;border:1px solid #4a1a1a'
+  };
+
+  list.innerHTML = songs.map((s, i) => {
+    const bs = badgeStyles[s.toneBadge] || badgeStyles['Crunch'];
+    const ctxColor = s.context === 'Band' ? '#4a9eff' : '#f5a623';
+    const ctxBg = s.context === 'Band' ? '#0a1520' : '#1a0e0a';
+    const modeColor = s.channelMode === 'red' ? '#e84040' : '#40c060';
+
+    const dk = (l, v) => `<div class="detail-knob"><div class="dk-label">${l}</div><div class="dk-val">${v}</div></div>`;
+
+    const sdialSVG = (value, color) => {
+      const pct = Math.min(Math.max(value, 0), 10) / 10;
+      const deg = pct * 260;
+      const startRad = -220 * Math.PI / 180;
+      const endRad = startRad + deg * Math.PI / 180;
+      const r = 14; const cx = 18; const cy = 18;
+      const x1 = (cx + r * Math.cos(startRad)).toFixed(2);
+      const y1 = (cy + r * Math.sin(startRad)).toFixed(2);
+      const x2 = (cx + r * Math.cos(endRad)).toFixed(2);
+      const y2 = (cy + r * Math.sin(endRad)).toFixed(2);
+      const large = deg > 180 ? 1 : 0;
+      const c = color || '#e8420a';
+      return `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:36px;height:36px">
+        <circle cx="18" cy="18" r="14" stroke="#333" stroke-width="3"/>
+        ${deg > 0 ? `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>` : ''}
+        <circle cx="${x2}" cy="${y2}" r="2" fill="#f5a623"/>
+      </svg>`;
+    };
+
+    const dkDial = (l, v, color) => `<div class="detail-knob">
+      <div class="dk-label">${l}</div>
+      <div style="margin:3px auto 2px">${sdialSVG(v, color)}</div>
+      <div class="dk-val">${v}</div>
+    </div>`;
+
+    const ampSections = `
+      <div class="detail-amp-row">
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">① Gain &amp; Ch.Vol</div>
+          <div class="detail-knob-row">${dkDial('Gain', s.gain, '#e8420a')}${dkDial('Ch.Vol', s.channelVolume, '#e8420a')}</div>
+        </div>
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">② Treble / Mid / Bass</div>
+          <div class="detail-knob-row">${dkDial('Treble', s.treble, '#f5a623')}${dkDial('Mid', s.middle, '#f5a623')}${dkDial('Bass', s.bass, '#f5a623')}</div>
+        </div>
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">③ Presence / Reson</div>
+          <div class="detail-knob-row">${dkDial('Pres', s.presence, '#4a9eff')}${dkDial('Reson', s.resonance, '#4a9eff')}</div>
+        </div>
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">④ Master</div>
+          <div class="detail-knob-row">${dkDial('Master', s.masterVolume, '#888')}</div>
+        </div>
+      </div>`;
+
+    const ampKnobsFlat = [
+      {l:'Gain',v:s.gain},{l:'Ch.Vol',v:s.channelVolume},
+      {l:'Treble',v:s.treble},{l:'Mid',v:s.middle},{l:'Bass',v:s.bass},
+      {l:'Pres',v:s.presence},{l:'Reson',v:s.resonance},{l:'Master',v:s.masterVolume}
+    ].map(k => dk(k.l, k.v)).join('');
+
+    const rv6HTML = s.rv6 ? `
+      <div class="detail-section">
+        <div class="detail-section-label">RV-6 Reverb — ${s.rv6.mode}</div>
+        <div class="detail-knob-row">
+          ${dkDial('Level', s.rv6.level, '#4a9eff')}${dkDial('Time', s.rv6.time, '#4a9eff')}${dkDial('Tone', s.rv6.tone, '#4a9eff')}
+        </div>
+      </div>` : '';
+
+    const pedalsHTML = s.pedals && s.pedals.length ? s.pedals.map(pd =>
+      `<div class="detail-section">
+        <div class="detail-section-label">${pd.name} — ${pd.role}</div>
+        <div class="detail-knob-row">${pd.knobs.map(k => dkDial(k.label, k.value, '#f5a623')).join('')}</div>
+      </div>`).join('') : '';
+
+    return `<div class="song-row-item" id="sri-${s.id}" draggable="true" data-id="${s.id}"
+        ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)">
+      <div class="song-row-header" onclick="toggleSongRow(${s.id})">
+        <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+        <input type="checkbox" class="song-chk" data-id="${s.id}" checked
+          onclick="event.stopPropagation()" onchange="updateSelection()"
+          style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div class="sri-title">${s.song}</div>
+          <div class="sri-meta">${s.artist} · ${s.genre}</div>
+        </div>
+        <span class="sri-guitar">${s.guitarLabel}</span>
+        <span class="sri-badge" style="${bs}">${s.toneBadge}</span>
+        <span class="sri-context" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44;padding:3px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em">${s.context}</span>
+        <span class="sri-chevron">▶</span>
+      </div>
+      <div class="song-row-detail">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <button class="edit-btn" onclick="startEdit(event,${s.id})">✎ Edit settings</button>
+          <button class="sri-delete" onclick="deleteSong(event,${s.id})">✕ Remove</button>
+        </div>
+        <div id="view-${s.id}">
+          <div class="detail-section">
+            <div class="detail-section-label">Marshall DSL40</div>
+            <div class="detail-chips">
+              <span class="detail-chip hi"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${modeColor};margin-right:4px;vertical-align:middle"></span>${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'}</span>
+              <span class="detail-chip ${s.toneShift ? 'hi' : ''}">Tone Shift ${s.toneShift ? 'ON' : 'OFF'}</span>
+            </div>
+            ${ampSections}
+          </div>
+          ${rv6HTML}
+          ${pedalsHTML}
+          <div class="detail-section">
+            <div class="detail-section-label">${s.guitarLabel} — Guitar</div>
+            <div class="detail-knob-row">
+              ${dkDial('Volume', s.volume, '#f5a623')}${dkDial('Tone', s.tone, '#f5a623')}
+              <div class="detail-chip" style="align-self:center;margin-left:4px">Pos ${s.pickupPosition} — ${s.pickupName}</div>
+            </div>
+          </div>
+          <div class="detail-notes">${s.notes}</div>
+        </div>
+        <div id="edit-${s.id}" style="display:none"></div>
+      </div>
+      <div class="print-detail" style="display:none">
+        <div class="detail-section">
+          <div class="detail-section-label">Marshall DSL40 — ${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'} · Tone Shift ${s.toneShift ? 'ON' : 'OFF'}</div>
+          <div class="detail-knob-row">${ampKnobsFlat}</div>
+        </div>
+        ${rv6HTML}${pedalsHTML}
+        <div class="detail-section">
+          <div class="detail-section-label">${s.guitarLabel} — Vol ${s.volume} · Tone ${s.tone} · Pickup: Pos ${s.pickupPosition} (${s.pickupName})</div>
+        </div>
+        <div class="detail-notes">${s.notes}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Show selection bar, update counts
+  document.getElementById('selection-bar').style.display = 'flex';
+  updateSelection();
+}
+
+// ── SELECTION ──
+function getSelectedIds() {
+  return Array.from(document.querySelectorAll('.song-chk:checked')).map(c => Number(c.dataset.id));
+}
+
+function updateSelection() {
+  const all = document.querySelectorAll('.song-chk');
+  const checked = document.querySelectorAll('.song-chk:checked');
+  const total = all.length;
+  const n = checked.length;
+
+  // Update select-all checkbox state
+  const allChk = document.getElementById('select-all-chk');
+  if (allChk) {
+    allChk.checked = n === total && total > 0;
+    allChk.indeterminate = n > 0 && n < total;
+  }
+
+  // Update label and count
+  document.getElementById('selection-label').textContent = n === total ? 'All selected' : 'Select all';
+  document.getElementById('selection-count').textContent = n === 0 ? 'None selected' : n + ' of ' + total + ' selected';
+
+  // Update button labels
+  const printBtn = document.getElementById('print-btn');
+  const exportBtn = document.getElementById('export-btn');
+  if (printBtn) printBtn.textContent = n === total ? '⎙ Print all' : '⎙ Print ' + n;
+  if (exportBtn) exportBtn.textContent = n === total ? '⬇ Export all' : '⬇ Export ' + n;
+}
+
+function toggleSelectAll(checked) {
+  document.querySelectorAll('.song-chk').forEach(c => c.checked = checked);
+  updateSelection();
+}
+
+function getSelectedSongs() {
+  const ids = new Set(getSelectedIds());
+  return getSavedSongs().filter(s => ids.has(s.id));
+}
+
+// ── EDIT SONG ──
+function startEdit(e, id) {
+  e.stopPropagation();
+  const songs = getSavedSongs();
+  const s = songs.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('view-' + id).style.display = 'none';
+  const editDiv = document.getElementById('edit-' + id);
+  editDiv.style.display = 'block';
+
+  const slider = (field, label, val, color) =>
+    `<div class="edit-field">
+      <label>${label}</label>
+      <input type="range" min="0" max="10" step="1" value="${val}" oninput="this.nextElementSibling.textContent=this.value" data-field="${field}">
+      <span class="eval">${val}</span>
+    </div>`;
+
+  const channelOpts = ['Clean/Classic Gain', 'Ultra Gain'].map(c =>
+    `<option value="${c}" ${s.channel === c ? 'selected' : ''}>${c}</option>`).join('');
+  const modeOpts = ['green','red'].map(m =>
+    `<option value="${m}" ${s.channelMode === m ? 'selected' : ''}>${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('');
+
+  let rv6HTML = '';
+  if (s.rv6) {
+    const rv6ModeOpts = ['Room','Hall','Plate','Spring','Mod','Shimmer','Dynamic','Gate'].map(m =>
+      `<option value="${m}" ${s.rv6.mode === m ? 'selected' : ''}>${m}</option>`).join('');
+    rv6HTML = `
+      <div class="edit-row-label">RV-6 Reverb</div>
+      <div class="edit-row">
+        <div class="edit-field"><label>Mode</label><select data-field="rv6mode">${rv6ModeOpts}</select></div>
+        ${slider('rv6level','Level',s.rv6.level,'#4a9eff')}
+        ${slider('rv6time','Time',s.rv6.time,'#4a9eff')}
+        ${slider('rv6tone','Tone',s.rv6.tone,'#4a9eff')}
+      </div>`;
+  }
+
+  // Pickup position options depend on guitar
+  const isStrat = s.guitar === 'strat';
+  const is335 = s.guitar === 'es335';
+  const puPositions = isStrat
+    ? [1,2,3,4,5].map(n => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n}</option>`).join('')
+    : [1,2,3].map(n => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n}</option>`).join('');
+
+  editDiv.innerHTML = `<div class="edit-form">
+    <div class="edit-row-label">Marshall DSL40 — Channel &amp; Mode</div>
+    <div class="edit-row">
+      <div class="edit-field"><label>Channel</label><select data-field="channel">${channelOpts}</select></div>
+      <div class="edit-field"><label>Mode</label><select data-field="channelMode">${modeOpts}</select></div>
+      <div class="edit-field"><label>Tone Shift</label>
+        <select data-field="toneShift">
+          <option value="false" ${!s.toneShift?'selected':''}>Off</option>
+          <option value="true" ${s.toneShift?'selected':''}>On</option>
+        </select>
+      </div>
+    </div>
+    <div class="edit-row-label">① Gain &amp; Channel Volume</div>
+    <div class="edit-row">
+      ${slider('gain','Gain',s.gain,'#e8420a')}
+      ${slider('channelVolume','Ch.Vol',s.channelVolume,'#e8420a')}
+    </div>
+    <div class="edit-row-label">② Treble / Mid / Bass</div>
+    <div class="edit-row">
+      ${slider('treble','Treble',s.treble,'#f5a623')}
+      ${slider('middle','Mid',s.middle,'#f5a623')}
+      ${slider('bass','Bass',s.bass,'#f5a623')}
+    </div>
+    <div class="edit-row-label">③ Presence &amp; Resonance</div>
+    <div class="edit-row">
+      ${slider('presence','Presence',s.presence,'#4a9eff')}
+      ${slider('resonance','Resonance',s.resonance,'#4a9eff')}
+    </div>
+    <div class="edit-row-label">④ Master Volume</div>
+    <div class="edit-row">
+      ${slider('masterVolume','Master',s.masterVolume,'#888')}
+    </div>
+    ${rv6HTML}
+    <div class="edit-row-label">${s.guitarLabel} — Guitar</div>
+    <div class="edit-row">
+      ${slider('volume','Volume',s.volume,'#f5a623')}
+      ${slider('tone','Tone',s.tone,'#f5a623')}
+      <div class="edit-field"><label>Pickup Pos</label><select data-field="pickupPosition">${puPositions}</select></div>
+    </div>
+    <div class="edit-actions">
+      <button class="save-edit-btn" onclick="saveEdit(event,${id})">✓ Save changes</button>
+      <button class="cancel-edit-btn" onclick="cancelEdit(event,${id})">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function cancelEdit(e, id) {
+  e.stopPropagation();
+  document.getElementById('view-' + id).style.display = 'block';
+  document.getElementById('edit-' + id).style.display = 'none';
+}
+
+function saveEdit(e, id) {
+  e.stopPropagation();
+  const editDiv = document.getElementById('edit-' + id);
+  const songs = getSavedSongs();
+  const idx = songs.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const s = songs[idx];
+
+  // Collect all slider/select values
+  editDiv.querySelectorAll('[data-field]').forEach(el => {
+    const f = el.dataset.field;
+    if (f === 'channel') s.channel = el.value;
+    else if (f === 'channelMode') s.channelMode = el.value;
+    else if (f === 'toneShift') s.toneShift = el.value === 'true';
+    else if (f === 'rv6mode') { if (s.rv6) s.rv6.mode = el.value; }
+    else if (f === 'rv6level') { if (s.rv6) s.rv6.level = Number(el.value); }
+    else if (f === 'rv6time') { if (s.rv6) s.rv6.time = Number(el.value); }
+    else if (f === 'rv6tone') { if (s.rv6) s.rv6.tone = Number(el.value); }
+    else if (f === 'pickupPosition') s.pickupPosition = Number(el.value);
+    else s[f] = Number(el.value);
+  });
+
+  songs[idx] = s;
+  setSavedSongs(songs);
+  renderSongLibrary();
+  // Re-expand the row after re-render
+  setTimeout(() => {
+    const el = document.getElementById('sri-' + id);
+    if (el) el.classList.add('expanded');
+  }, 50);
+}
+
+function toggleSongRow(id) {
+  const el = document.getElementById('sri-' + id);
+  if (el) el.classList.toggle('expanded');
+}
+
+// ── DRAG TO REORDER ──
+let dragSrcId = null;
+
+function dragStart(e) {
+  dragSrcId = Number(e.currentTarget.dataset.id);
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.song-row-item').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+
+function dragDrop(e) {
+  e.preventDefault();
+  const targetId = Number(e.currentTarget.dataset.id);
+  if (dragSrcId === targetId) return;
+  const songs = getSavedSongs();
+  const srcIdx = songs.findIndex(s => s.id === dragSrcId);
+  const tgtIdx = songs.findIndex(s => s.id === targetId);
+  if (srcIdx === -1 || tgtIdx === -1) return;
+  const reordered = [...songs];
+  const [moved] = reordered.splice(srcIdx, 1);
+  reordered.splice(tgtIdx, 0, moved);
+  setSavedSongs(reordered);
+  renderSongLibrary();
+}
+
+function dragEnd(e) {
+  document.querySelectorAll('.song-row-item').forEach(el => {
+    el.classList.remove('dragging');
+    el.classList.remove('drag-over');
+  });
+}
+
+function deleteSong(e, id) {
+  e.stopPropagation();
+  e.preventDefault();
+  const sid = Number(id);
+  // Show inline confirm inside the row instead of browser confirm()
+  const row = document.getElementById('sri-' + sid);
+  if (!row) return;
+  // If already showing confirm, bail
+  if (row.querySelector('.delete-confirm')) return;
+  const songs = getSavedSongs();
+  const song = songs.find(s => s.id === sid);
+  const name = song ? '"' + song.song + '"' : 'this song';
+
+  const confirmBar = document.createElement('div');
+  confirmBar.className = 'delete-confirm';
+  confirmBar.innerHTML = `
+    <span style="font-size:12px;color:var(--text2)">Remove ${name}?</span>
+    <button class="dc-yes" onclick="confirmDelete(event,${sid})">Yes, remove</button>
+    <button class="dc-no" onclick="cancelDelete(event,${sid})">Cancel</button>`;
+  // Insert at top of detail panel
+  const detail = row.querySelector('.song-row-detail');
+  if (detail) detail.insertBefore(confirmBar, detail.firstChild);
+}
+
+function confirmDelete(e, sid) {
+  e.stopPropagation();
+  const songs = getSavedSongs().filter(s => s.id !== Number(sid));
+  setSavedSongs(songs);
+  renderSongLibrary();
+}
+
+function cancelDelete(e, sid) {
+  e.stopPropagation();
+  const row = document.getElementById('sri-' + sid);
+  if (row) {
+    const bar = row.querySelector('.delete-confirm');
+    if (bar) bar.remove();
+  }
+}
+
+function printSongs() {
+  const allSongs = getSavedSongs();
+  if (!allSongs.length) { alert('No songs in your library yet.'); return; }
+
+  const chks = document.querySelectorAll('.song-chk:checked');
+  const ids = new Set(chks.length > 0
+    ? Array.from(chks).map(c => Number(c.dataset.id))
+    : allSongs.map(s => s.id));
+
+  const songs = allSongs.filter(s => ids.has(s.id));
+  if (!songs.length) { alert('No songs selected. Check the boxes next to the songs you want to print.'); return; }
+
+  try {
+    const kv = (l, v) => `<div class="pr2-knob"><div class="kl">${l}</div><div class="kv">${v}</div></div>`;
+    const sep = `<span class="pr2-sep">/</span>`;
+
+    const rows = songs.map(s => {
+      const mc = s.channelMode === 'red' ? '#c00' : '#060';
+      const chLabel = (s.channel.includes('Ultra') ? 'UG' : 'CG') + ' ' + (s.channelMode === 'red' ? '🔴' : '🟢');
+
+      // RV-6 group (only if used)
+      const rv6Group = s.rv6 ? `
+        <div class="pr2-group">
+          <span class="pr2-lbl">RV-6 ${s.rv6.mode}</span>
+          ${kv('Lvl', s.rv6.level)}${sep}${kv('Time', s.rv2 ? s.rv6.time : s.rv6.time)}${sep}${kv('Tone', s.rv6.tone)}
+        </div>` : '';
+
+      // Guitar group
+      const guitarGroup = `
+        <div class="pr2-group">
+          <span class="pr2-lbl">${s.guitarLabel.replace('Gibson ','').replace('Fender ','').replace('Epiphone ','')}</span>
+          ${kv('Vol', s.volume)}${sep}${kv('Tone', s.tone)}${sep}<div class="pr2-knob"><div class="kl">Pickup</div><div class="kv" style="font-size:8px;white-space:nowrap">P${s.pickupPosition} ${s.pickupName}</div></div>
+        </div>`;
+
+      return `<div class="prow">
+        <div class="pr1">
+          <span class="pr1-title">${s.song} <span style="font-weight:normal;color:#555">— ${s.artist}</span></span>
+          <span class="pr1-tag">${s.guitarLabel.replace('Gibson ','').replace('Fender ','').replace('Epiphone ','')}</span>
+          <span class="pr1-tag">${s.context}</span>
+          <span class="pr1-tag" style="background:#000;color:#fff;border-color:#000">${s.channel.includes('Ultra')?'Ultra Gain':'Clean/Classic'} · ${s.channelMode==='red'?'Red':'Green'}</span>
+          <span class="pr1-tag ${s.toneShift?'hi':''}">Tone Shift ${s.toneShift?'ON':'off'}</span>
+        </div>
+        <div class="pr2">
+          <div class="pr2-group">
+            <span class="pr2-lbl">① Gain/ChVol</span>
+            ${kv('Gain', s.gain)}${sep}${kv('ChVol', s.channelVolume)}
+          </div>
+          <div class="pr2-group">
+            <span class="pr2-lbl">② EQ</span>
+            ${kv('Tre', s.treble)}${sep}${kv('Mid', s.middle)}${sep}${kv('Bass', s.bass)}
+          </div>
+          <div class="pr2-group">
+            <span class="pr2-lbl">③ Shape</span>
+            ${kv('Pres', s.presence)}${sep}${kv('Reson', s.resonance)}
+          </div>
+          <div class="pr2-group">
+            <span class="pr2-lbl">④ Master</span>
+            ${kv('Vol', s.masterVolume)}
+          </div>
+          ${rv6Group}
+          ${guitarGroup}
+        </div>
+      </div>`;
+    }).join('');
+
+    const old = document.getElementById('print-area');
+    if (old) old.remove();
+
+    const div = document.createElement('div');
+    div.id = 'print-area';
+    div.innerHTML = `<div class="phead"><h2>ToneFinder — Cheat Sheet</h2><p>Marshall DSL40 · Les Paul · Stratocaster · ES-335 · ${new Date().toLocaleDateString()}</p></div>${rows}`;
+    document.body.appendChild(div);
+
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => div.remove(), 1000);
+    }, 50);
+
+  } catch(err) {
+    alert('Print error: ' + err.message);
+  }
+}
+
+async function getSettings() {
+  const song = document.getElementById('song-input').value.trim();
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!song) return;
+  if (!apiKey) {
+    document.getElementById('result-area').innerHTML = '<div class="error-box">No API key found. Go to <strong>Settings</strong> to add your Anthropic API key.</div>';
+    return;
+  }
+
+  const isBand = document.getElementById('tog-band').checked;
+  const useReverb = document.getElementById('tog-reverb').checked;
+  const usePedals = document.getElementById('tog-pedals').checked;
+  const hint = document.getElementById('hint-input').value.trim();
+
+  const btn = document.getElementById('go-btn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  document.getElementById('result-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Dialing in your tone...</div>`;
+
+  const context = isBand ? 'playing WITH A BAND (drums, bass, keys, other instruments)' : 'playing SOLO (no other instruments)';
+  const bandGuidance = isBand
+    ? 'BAND MIX: Cut mids to carve space for bass/vocals, tighten bass, reduce reverb level and time, boost presence to cut through. Guitar must occupy its own frequency space.'
+    : 'SOLO: Fuller bass response, more generous reverb, wider EQ curve, mids can be boosted for warmth. Guitar is the only instrument so it can breathe.';
+
+  const reverbInstruction = useReverb
+    ? 'Include Boss RV-6 reverb settings (mode, level, time, tone, tip).'
+    : 'Do NOT include rv6 settings. Set rv6 to null.';
+
+  const pedalInstruction = usePedals
+    ? `Consider recommending pedals ONLY if they genuinely suit this song. Available pedals: Ibanez Tube Screamer TS9 (knobs: Drive 0-10, Tone 0-10, Level 0-10) and Boss DS-2 Turbo Distortion (knobs: Dist 0-10, Tone 0-10, Level 0-10, Mode "Turbo I" or "Turbo II"). If recommending, provide specific settings. If neither pedal suits the song, return an empty pedals array.`
+    : 'Do NOT recommend any pedals. Return empty pedals array.';
+
+  const hintInstruction = hint
+    ? `PLAYER INSTRUCTION — the player has specifically requested: "${hint}". Honor this in your recommendations. It overrides your own judgment where it applies.`
+    : '';
+
+  const prompt = `You are a guitar tone expert. The user has a Marshall DSL40 tube amp, three guitars (Gibson Les Paul with humbuckers, Fender Stratocaster with single-coils, and an Epiphone ES-335 inspired by the 1962 Gibson ES-335 — semi-hollow with humbuckers), and a Boss RV-6 reverb pedal.
+
+Give settings for playing the song "${song}". The player is ${context}.
+${hintInstruction}
+
+${bandGuidance}
+${reverbInstruction}
+${pedalInstruction}
+
+Marshall DSL40: Always assume Pentode mode (full 40W power). The player uses an attenuator, so recommend settings purely for the ideal tone for the song — ignore room volume entirely.
+
+Channel Volume and Master Volume interact to shape tone: Channel Volume sets preamp gain staging; Master Volume drives the power amp. Set both at whatever level produces the correct tone for the song — there is no default, no preferred range. A song may call for low master and high channel, or high master and low channel, or anywhere in between. Let the song decide.
+
+Channel ("Clean/Classic Gain" or "Ultra Gain"), channelMode ("green" or "red" — Clean/Classic Gain: green=cleaner headroom, red=more breakup; Ultra Gain: green=tighter modern, red=looser vintage), Tone Shift (bool), Gain 0-10, Channel Volume 0-10, Treble 0-10, Mid 0-10, Bass 0-10, Presence 0-10, Resonance 0-10, Master Volume 0-10.
+
+Provide completely separate amp settings for each guitar — each has a different output level and tonal character that affects the ideal amp settings:
+- Gibson Les Paul (humbuckers): higher output, warmer, thicker
+- Fender Stratocaster (single-coils): lower output, brighter, more dynamic
+- Epiphone ES-335 (semi-hollow humbuckers): resonant, woody midrange, slightly microphonic character
+
+PICKUP SELECTION: Choose whatever pickup position best serves the song. Do not have a preference. Each position has a different tonal character — use that knowledge to match the song, not to follow a rule.
+
+Les Paul pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker
+Strat pickup positions: 1=Bridge, 2=Bridge+Middle, 3=Middle, 4=Middle+Neck, 5=Neck
+ES-335 pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker
+
+The rv6 and pedals fields inside each guitar profile should reflect what's best for that guitar specifically.
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "song": "exact song name",
+  "artist": "artist name",
+  "genre": "genre",
+  "recommendedGuitar": "lp|strat|es335",
+  "guitarReason": "1 sentence why this guitar suits the song best",
+  "lespaul": {
+    "toneBadge": "Clean|Crunch|Lead|Heavy",
+    "channel": "Clean/Classic Gain|Ultra Gain",
+    "channelMode": "green|red",
+    "toneShift": true|false,
+    "gain": 0-10,
+    "channelVolume": 0-10,
+    "treble": 0-10,
+    "middle": 0-10,
+    "bass": 0-10,
+    "presence": 0-10,
+    "resonance": 0-10,
+    "masterVolume": 0-10,
+    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
+    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
+    "volume": 0-10,
+    "tone": 0-10,
+    "pickupName": "e.g. Bridge Humbucker",
+    "pickupPosition": 1|2|3,
+    "pickupDesc": "1 sentence",
+    "notes": "2 sentences on Les Paul specific tone approach for this song"
+  },
+  "strat": {
+    "toneBadge": "Clean|Crunch|Lead|Heavy",
+    "channel": "Clean/Classic Gain|Ultra Gain",
+    "channelMode": "green|red",
+    "toneShift": true|false,
+    "gain": 0-10,
+    "channelVolume": 0-10,
+    "treble": 0-10,
+    "middle": 0-10,
+    "bass": 0-10,
+    "presence": 0-10,
+    "resonance": 0-10,
+    "masterVolume": 0-10,
+    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
+    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
+    "volume": 0-10,
+    "tone": 0-10,
+    "pickupName": "e.g. Neck Single-Coil",
+    "pickupPosition": 1|2|3|4|5,
+    "pickupDesc": "1 sentence",
+    "notes": "2 sentences on Strat specific tone approach for this song"
+  },
+  "es335": {
+    "toneBadge": "Clean|Crunch|Lead|Heavy",
+    "channel": "Clean/Classic Gain|Ultra Gain",
+    "channelMode": "green|red",
+    "toneShift": true|false,
+    "gain": 0-10,
+    "channelVolume": 0-10,
+    "treble": 0-10,
+    "middle": 0-10,
+    "bass": 0-10,
+    "presence": 0-10,
+    "resonance": 0-10,
+    "masterVolume": 0-10,
+    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
+    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
+    "volume": 0-10,
+    "tone": 0-10,
+    "pickupName": "e.g. Neck Humbucker",
+    "pickupPosition": 1|2|3,
+    "pickupDesc": "1 sentence",
+    "notes": "2 sentences on ES-335 specific tone approach for this song — mention the semi-hollow character"
+  }
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 3200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const s = JSON.parse(clean);
+    currentData = s;
+    selectedGuitar = s.recommendedGuitar;
+    renderResult(s);
+
+  } catch(e) {
+    document.getElementById('result-area').innerHTML = `<div class="error-box">Error: ${e.message || 'Something went wrong. Check your API key in Settings.'}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Get tone →';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  refreshKeyStatus();
+  refreshBackupStatus();
+  updateSongsBadge();
+  document.getElementById('song-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') getSettings();
+  });
+  document.getElementById('hint-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') getSettings();
+  });
+  // Register service worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+});
+</script>
+</body>
+</html>

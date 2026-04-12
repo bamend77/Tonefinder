@@ -1,0 +1,24 @@
+{
+  "name": "ToneFinder — Marshall DSL40",
+  "short_name": "ToneFinder",
+  "description": "AI tone recommendations for Marshall DSL40 with Les Paul, Stratocaster and ES-335",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0c0c",
+  "theme_color": "#0c0c0c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
