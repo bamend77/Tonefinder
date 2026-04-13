@@ -1,4 +1,4 @@
-const CACHE = 'tonefinder-v1';
+const CACHE = 'tonefinder-v20260413';
 const ASSETS = [
   '/',
   '/index.html',
