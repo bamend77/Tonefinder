@@ -830,7 +830,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.1 · April 2026</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.1 · April 13 2026 · 3:00pm</div>
   </div>
 
   <div class="settings-card">
@@ -1296,13 +1296,10 @@ function knobHTML(label, val, color, hot) {
   </div>`;
 }
 
-function renderResult(s, guitarOverride) {
-  if (!s) return;
-  const guitar = guitarOverride || selectedGuitar;
+function renderResult(p, guitar) {
+  if (!p) return;
   const isLP = guitar === 'lp';
   const is335 = guitar === 'es335';
-  const p = isLP ? s.lespaul : is335 ? s.es335 : s.strat;
-  if (!p) return;
   const guitarLabel = isLP ? 'Gibson Les Paul' : is335 ? 'Epiphone ES-335' : 'Fender Stratocaster';
   const isBand = document.getElementById('tog-band').checked;
   const useReverb = document.getElementById('tog-reverb').checked;
@@ -2022,15 +2019,14 @@ async function recommendGuitar() {
   const isBand = document.getElementById('tog-band').checked;
   const context = isBand ? 'playing WITH A BAND' : 'playing SOLO';
 
-  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 (Classic Gain channel, Pentode/full power, edge-of-breakup philosophy) and three guitars: Gibson Les Paul (humbuckers), Fender Stratocaster (single-coils), Epiphone ES-335 (semi-hollow humbuckers). Player is ${context}.
+  const prompt = `Song: "${song}". Amp: Marshall DSL40 (Classic Gain, edge-of-breakup tone philosophy).
 
-RULES:
-${getRulesForPrompt()}
+Which of these 3 guitars suits this song best on this amp?
+- Gibson Les Paul (humbuckers)
+- Fender Stratocaster (single-coils)  
+- Epiphone ES-335 (semi-hollow humbuckers)
 
-For the song "${song}", recommend which single guitar best serves the tone on this Marshall DSL40. No guitar is a default — choose based purely on what serves this song on this amp.
-
-Respond ONLY with valid JSON, no markdown:
-{"guitar": "Les Paul|Stratocaster|ES-335", "reason": "2 sentences — why this guitar on a Marshall DSL40 for this song, referencing the amp character and tone rules"}`;
+Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"1-2 sentences why this guitar suits this song on a Marshall DSL40"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2107,8 +2103,10 @@ ${usePedals ? '- Pedals only if song genuinely needs: Tube Screamer TS9 (Drive/T
 Pickups: ${pickupGuide}
 Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
 
-Respond ONLY valid JSON:
-{"song":"name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":true,"gain":5,"channelVolume":5,"treble":5,"middle":6,"bass":4,"presence":4,"resonance":4,"masterVolume":4,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":2,"time":3,"tone":5,"tip":"one sentence"}' : 'null'},"pedals":[],"volume":10,"tone":7,"pickupPosition":${pickupMax},"pickupName":"name","pickupDesc":"one sentence","notes":"two sentences"}`;
+Respond ONLY with valid JSON, no extra text:
+{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}
+
+Replace every 0 with the correct value for the song. All numbers 0-10.`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2137,12 +2135,9 @@ Respond ONLY valid JSON:
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
-
-    // Store flat response — renderResult reads it directly via guitar key
-    currentData = { song: s.song, artist: s.artist, genre: s.genre };
-    currentData[guitar] = s;
+    currentData = s;
     selectedGuitar = guitar;
-    renderResult(currentData, guitar);
+    renderResult(s, guitar);
 
   } catch(e) {
     document.getElementById('result-area').innerHTML = `<div class="error-box">Error: ${e.message || 'Something went wrong. Check your API key in Settings.'}</div>`;
