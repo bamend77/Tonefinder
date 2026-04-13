@@ -2133,8 +2133,8 @@ Guitar Volume knob (0-10): recommend 10 unless song benefits from slight rollbac
 Guitar Tone knob (0=dark, 10=bright): always recommend a specific value.
 ${guitar !== 'strat' ? 'When recommending Both humbuckers (position 2), specify which tone knob (bridge or neck) and value.' : ''}
 
-PLAYER KNOWLEDGE RULES (must be strictly followed):
-${getRulesForPrompt()}
+PLAYER RULES (follow strictly):
+${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
 
 Respond ONLY with valid JSON, no markdown:
 {
@@ -2193,16 +2193,11 @@ Respond ONLY with valid JSON, no markdown:
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
 
-    // Wrap flat response into the per-guitar structure renderResult expects
-    const wrapped = {
-      song: s.song, artist: s.artist, genre: s.genre,
-      recommendedGuitar: guitar,
-      guitarReason: ''
-    };
-    wrapped[guitar] = s;
-    currentData = wrapped;
+    // Store flat response — renderResult reads it directly via guitar key
+    currentData = { song: s.song, artist: s.artist, genre: s.genre };
+    currentData[guitar] = s;
     selectedGuitar = guitar;
-    renderResult(wrapped, guitar);
+    renderResult(currentData, guitar);
 
   } catch(e) {
     document.getElementById('result-area').innerHTML = `<div class="error-box">Error: ${e.message || 'Something went wrong. Check your API key in Settings.'}</div>`;
