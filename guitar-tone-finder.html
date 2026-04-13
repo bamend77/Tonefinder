@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0c0c0c">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ToneFinder">
+
+
+
+
 <meta name="description" content="Marshall DSL40 tone recommendations for Les Paul, Stratocaster and ES-335">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+
+
 <title>ToneFinder — Marshall DSL40</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -1939,10 +1939,15 @@ function printSongs() {
 
 async function getSettings() {
   const song = document.getElementById('song-input').value.trim();
-  const apiKey = localStorage.getItem('anthropic_api_key');
+  const rawKey = localStorage.getItem('anthropic_api_key');
+  const apiKey = rawKey ? rawKey.trim() : null;
   if (!song) return;
   if (!apiKey) {
     document.getElementById('result-area').innerHTML = '<div class="error-box">No API key found. Go to <strong>Settings</strong> to add your Anthropic API key.</div>';
+    return;
+  }
+  if (!apiKey.startsWith('sk-ant-')) {
+    document.getElementById('result-area').innerHTML = '<div class="error-box">API key looks invalid — it should start with <strong>sk-ant-</strong>. Go to Settings and re-enter it.</div>';
     return;
   }
 
@@ -2100,7 +2105,17 @@ Respond ONLY with valid JSON, no markdown:
     });
 
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) {
+      const msg = data.error.message || 'Unknown error';
+      const type = data.error.type || '';
+      if (res.status === 401 || type === 'authentication_error') {
+        throw new Error('Invalid API key. Go to Settings and re-enter your key — make sure you copy it fully from console.anthropic.com.');
+      } else if (res.status === 529 || type === 'overloaded_error') {
+        throw new Error('Anthropic servers are busy. Wait 30 seconds and try again.');
+      } else {
+        throw new Error(`API error (${res.status}): ${msg}`);
+      }
+    }
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
@@ -2127,10 +2142,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hint-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') getSettings();
   });
-  // Register service worker for PWA
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+
 });
 </script>
 </body>

@@ -1939,10 +1939,15 @@ function printSongs() {
 
 async function getSettings() {
   const song = document.getElementById('song-input').value.trim();
-  const apiKey = localStorage.getItem('anthropic_api_key');
+  const rawKey = localStorage.getItem('anthropic_api_key');
+  const apiKey = rawKey ? rawKey.trim() : null;
   if (!song) return;
   if (!apiKey) {
     document.getElementById('result-area').innerHTML = '<div class="error-box">No API key found. Go to <strong>Settings</strong> to add your Anthropic API key.</div>';
+    return;
+  }
+  if (!apiKey.startsWith('sk-ant-')) {
+    document.getElementById('result-area').innerHTML = '<div class="error-box">API key looks invalid — it should start with <strong>sk-ant-</strong>. Go to Settings and re-enter it.</div>';
     return;
   }
 
@@ -2100,7 +2105,17 @@ Respond ONLY with valid JSON, no markdown:
     });
 
     const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) {
+      const msg = data.error.message || 'Unknown error';
+      const type = data.error.type || '';
+      if (res.status === 401 || type === 'authentication_error') {
+        throw new Error('Invalid API key. Go to Settings and re-enter your key — make sure you copy it fully from console.anthropic.com.');
+      } else if (res.status === 529 || type === 'overloaded_error') {
+        throw new Error('Anthropic servers are busy. Wait 30 seconds and try again.');
+      } else {
+        throw new Error(`API error (${res.status}): ${msg}`);
+      }
+    }
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
