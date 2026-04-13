@@ -824,7 +824,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.1 · April 13 2026 · 3:00pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.2 · April 13 2026 · 4:30pm</div>
   </div>
 
   <div class="settings-card">
@@ -1261,7 +1261,7 @@ function flash(id) {
   setTimeout(() => el.style.display = 'none', 3000);
 }
 
-function selectGuitar(g) { selectedGuitar = g; renderResult(currentData); }
+function selectGuitar(g) { selectedGuitar = g; renderResult(currentData, g); }
 
 function dialSVG(value, color) {
   const pct = Math.min(Math.max(value, 0), 10) / 10;
@@ -1359,8 +1359,8 @@ function renderResult(p, guitar) {
 
     <div class="song-card">
       <div>
-        <div class="song-title">${s.song}</div>
-        <div class="song-meta">${s.artist} &nbsp;·&nbsp; ${s.genre}</div>
+        <div class="song-title">${p.song}</div>
+        <div class="song-meta">${p.artist} &nbsp;·&nbsp; ${p.genre}</div>
         <div class="song-tags">
           <span class="ctx-tag" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44">${isBand ? 'Band Mix' : 'Solo'}</span>
           ${useReverb ? '<span class="ctx-tag" style="background:#0a1520;color:#4a9eff;border:1px solid #1a3a5a44">RV-6 On</span>' : ''}
@@ -1482,7 +1482,7 @@ function saveSong() {
   const isBand = document.getElementById('tog-band').checked;
   const useReverb = document.getElementById('tog-reverb').checked;
   const guitar = selectedGuitar || mainGuitar;
-  const p = guitar === 'lp' ? currentData.lespaul : guitar === 'es335' ? currentData.es335 : currentData.strat;
+  const p = currentData; // flat response stored directly
   if (!p) return;
   const guitarLabel = guitar === 'lp' ? 'Les Paul' : guitar === 'es335' ? 'ES-335' : 'Stratocaster';
 
