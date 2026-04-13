@@ -824,7 +824,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.3 · April 13 2026 · 5:00pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.4 · April 13 2026 · 5:30pm</div>
   </div>
 
   <div class="settings-card">
@@ -2018,16 +2018,18 @@ async function recommendGuitar() {
 
   const prompt = `Song: "${song}". Amp: Marshall DSL40 (Classic Gain channel, Pentode, edge-of-breakup tone philosophy — not high gain, not saturated).
 
-Which of these 3 guitars best suits this song on this amp?
+First, consider the tonal character of this song: is it clean or dirty, warm or bright, tight or loose, rhythm or lead focused? What does the song's feel and genre require from the guitar tone?
+
+Then choose which of these 3 guitars best serves that tonal character on this amp:
 - Gibson Les Paul (humbuckers)
 - Fender Stratocaster (single-coils)
 - Epiphone ES-335 (semi-hollow humbuckers)
 
 ${guitarRulesText}
 
-Consider the song's tone character, dynamics, and how each guitar interacts with the Marshall DSL40's edge-of-breakup character. No guitar is a default.
+No guitar is a default — choose based on what the song's tonal character needs from this amp at edge-of-breakup.
 
-Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — why this guitar suits this specific song on a Marshall DSL40 at edge-of-breakup"}`;
+Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — describe the song's tonal character and why this guitar serves it on a Marshall DSL40"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
