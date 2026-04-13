@@ -824,7 +824,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.7 · April 13 2026 · 6:45pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.8 · April 13 2026 · 7:15pm</div>
   </div>
 
   <div class="settings-card">
@@ -2011,13 +2011,21 @@ async function recommendGuitar() {
   document.getElementById('rec-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Analysing song...</div>`;
 
   const isBand = document.getElementById('tog-band').checked;
-  const context = isBand ? 'playing WITH A BAND' : 'playing SOLO';
+  const context = isBand ? 'band mix' : 'solo';
 
-  const prompt = `I play a Marshall DSL40 amp. I have 3 guitars: Gibson Les Paul (humbuckers), Fender Stratocaster (single-coils), Epiphone ES-335 (semi-hollow humbuckers).
+  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (Classic Gain channel, Pentode/full power, edge-of-breakup philosophy — not high gain, not saturated). They are playing ${context}.
 
-For the song "${song}", which guitar best suits the song's character and tone on a Marshall DSL40?
+They have 3 guitars:
+- Gibson Les Paul (humbuckers)
+- Fender Stratocaster (single-coils)
+- Epiphone ES-335 (semi-hollow humbuckers)
 
-Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences"}`;
+For the song "${song}", recommend the best guitar based on the song's tonal character and how each guitar interacts with the Marshall DSL40 at edge-of-breakup.
+
+PLAYER KNOWLEDGE RULES (must guide this recommendation):
+${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
+
+Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — reference the song character and why this guitar suits it on a Marshall DSL40"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
