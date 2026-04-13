@@ -719,10 +719,8 @@
     </div>
   </div>
 
-  <div class="context-hint" id="ctx-hint">Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.</div>
-
-  <!-- Guitar selector (always visible) -->
-  <div class="mono-label">Select your guitar</div>
+  <!-- Guitar selector for amp settings -->
+  <div class="mono-label">Select guitar for amp settings</div>
   <div class="guitar-select-row" id="main-guitar-select">
     <button class="gsel-btn active" id="gsel-lp" onclick="setMainGuitar('lp', this)">
       <div class="gsel-name">Les Paul</div>
@@ -751,13 +749,13 @@
     <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--dim);pointer-events:none">✎</span>
   </div>
 
-  <!-- Two action buttons -->
+  <!-- Two separate action buttons -->
   <div class="action-row">
     <button class="rec-btn" id="rec-btn" onclick="recommendGuitar()">★ Recommend Guitar</button>
     <button class="go-btn" id="go-btn" onclick="getSettings()">Get amp settings →</button>
   </div>
 
-  <!-- Recommendation result (shows between buttons and main result) -->
+  <!-- Recommendation result — simple text, no buttons -->
   <div id="rec-area"></div>
 
   <div id="result-area">
@@ -1136,7 +1134,7 @@ function updateToggles() {
     true:  'Band mix: cut mids to carve space, tighter bass, less reverb — sitting alongside drums, bass, and keys.',
     false: 'Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.'
   };
-  document.getElementById('ctx-hint').textContent = hints[isBand];
+  // ctx-hint removed from UI — solo/band hint shown in toggle label only
 }
 
 function saveKey() {
@@ -2007,37 +2005,25 @@ function printSongs() {
 async function recommendGuitar() {
   const song = document.getElementById('song-input').value.trim();
   const apiKey = localStorage.getItem('anthropic_api_key');
-  if (!song) return;
-  if (!apiKey) {
-    document.getElementById('rec-area').innerHTML = '<div class="error-box">No API key. Go to Settings first.</div>';
-    return;
-  }
+  if (!song) { document.getElementById('rec-area').innerHTML = '<div class="error-box">Enter a song name first.</div>'; return; }
+  if (!apiKey) { document.getElementById('rec-area').innerHTML = '<div class="error-box">No API key. Go to Settings first.</div>'; return; }
 
   const btn = document.getElementById('rec-btn');
   btn.disabled = true; btn.textContent = '★ Thinking...';
-  document.getElementById('rec-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Recommending guitar...</div>`;
+  document.getElementById('rec-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Analysing song...</div>`;
 
   const isBand = document.getElementById('tog-band').checked;
   const context = isBand ? 'playing WITH A BAND' : 'playing SOLO';
 
-  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (always on Classic Gain channel, Pentode/full power, edge-of-breakup philosophy) and three guitars:
-- Gibson Les Paul (humbuckers) — id: "lp"
-- Fender Stratocaster (single-coils) — id: "strat"
-- Epiphone ES-335 inspired by 1962 Gibson ES-335 (semi-hollow humbuckers) — id: "es335"
+  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 (Classic Gain channel, Pentode/full power, edge-of-breakup philosophy) and three guitars: Gibson Les Paul (humbuckers), Fender Stratocaster (single-coils), Epiphone ES-335 (semi-hollow humbuckers). Player is ${context}.
 
-The player is ${context}.
-
-PLAYER KNOWLEDGE RULES (must influence recommendation):
+RULES:
 ${getRulesForPrompt()}
 
-For the song "${song}", recommend which guitar best serves the tone — considering the Marshall DSL40's character, the player's edge-of-breakup philosophy, and the song's requirements. No guitar is a default — choose based purely on what serves the song on THIS amp.
+For the song "${song}", recommend which single guitar best serves the tone on this Marshall DSL40. No guitar is a default — choose based purely on what serves this song on this amp.
 
 Respond ONLY with valid JSON, no markdown:
-{
-  "recommendedGuitar": "lp|strat|es335",
-  "guitarName": "full name e.g. Gibson Les Paul",
-  "reason": "2 sentences — why this guitar on a Marshall DSL40 for this song specifically, referencing amp character and tone philosophy"
-}`;
+{"guitar": "Les Paul|Stratocaster|ES-335", "reason": "2 sentences — why this guitar on a Marshall DSL40 for this song, referencing the amp character and tone rules"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2048,65 +2034,24 @@ Respond ONLY with valid JSON, no markdown:
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: prompt }] })
     });
 
     const data = await res.json();
-    if (data.error) {
-      const type = data.error.type || '';
-      if (res.status === 401 || type === 'authentication_error') throw new Error('Invalid API key — check Settings.');
-      throw new Error(data.error.message);
-    }
+    if (data.error) throw new Error(data.error.message);
+    const r = JSON.parse(data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim());
 
-    const text = data.content.map(i => i.text || '').join('');
-    const r = JSON.parse(text.replace(/```json|```/g, '').trim());
-
-    // Update main guitar selector to match recommendation
-    mainGuitar = r.recommendedGuitar;
-    document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
-    const selBtn = document.getElementById('gsel-' + r.recommendedGuitar);
-    if (selBtn) selBtn.classList.add('active');
-
-    // Show recommendation card
-    const guitars = [
-      { id: 'lp', name: 'Les Paul', sub: 'Humbuckers' },
-      { id: 'strat', name: 'Stratocaster', sub: 'Single-coils' },
-      { id: 'es335', name: 'ES-335', sub: 'Semi-hollow' }
-    ];
-
-    document.getElementById('rec-area').innerHTML = `<div class="rec-card">
-      <div class="rec-card-label">★ Guitar recommendation for "${song}"</div>
-      <div class="rec-guitar-btns">
-        ${guitars.map(g => `<button class="rec-guitar-opt ${g.id === r.recommendedGuitar ? 'rec-suggested' : ''} ${g.id === mainGuitar ? 'rec-selected' : ''}"
-          onclick="pickRecGuitar('${g.id}', this)">
-          ${g.id === r.recommendedGuitar ? '<div class="rgo-tag">★ Recommended</div>' : ''}
-          <div class="rgo-name">${g.name}</div>
-          <div class="gsel-sub">${g.sub}</div>
-        </button>`).join('')}
-      </div>
-      <div class="rec-reason">${r.reason}</div>
-    </div>`;
+    document.getElementById('rec-area').innerHTML = `
+      <div class="rec-card">
+        <div class="rec-card-label">★ Recommended guitar for "${song}"</div>
+        <div style="font-size:15px;font-weight:500;color:var(--accent2);margin-bottom:8px">${r.guitar}</div>
+        <div class="rec-reason">${r.reason}</div>
+      </div>`;
 
   } catch(e) {
     document.getElementById('rec-area').innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
   }
-
   btn.disabled = false; btn.textContent = '★ Recommend Guitar';
-}
-
-function pickRecGuitar(g, btn) {
-  mainGuitar = g;
-  // Update rec card buttons
-  document.querySelectorAll('.rec-guitar-opt').forEach(b => b.classList.remove('rec-selected'));
-  btn.classList.add('rec-selected');
-  // Update main guitar selector too
-  document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
-  const selBtn = document.getElementById('gsel-' + g);
-  if (selBtn) selBtn.classList.add('active');
 }
 
 async function getSettings() {
@@ -2223,11 +2168,7 @@ Respond ONLY with valid JSON, no markdown:
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1200,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
     });
 
     const data = await res.json();
