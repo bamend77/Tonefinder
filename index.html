@@ -830,6 +830,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.1 · April 2026</div>
   </div>
 
   <div class="settings-card">
@@ -2074,96 +2075,40 @@ async function getSettings() {
     return;
   }
 
+  const btn = document.getElementById('go-btn');
+  btn.disabled = true; btn.textContent = 'Loading...';
+  document.getElementById('result-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Dialing in your tone...</div>`;
+
+  const guitar = mainGuitar;
+  selectedGuitar = guitar;
+  const guitarNames = { lp: 'Gibson Les Paul (humbuckers)', strat: 'Fender Stratocaster (single-coils)', es335: 'Epiphone ES-335 (semi-hollow humbuckers)' };
+  const guitarName = guitarNames[guitar];
+  const pickupMax = guitar === 'strat' ? '1|2|3|4|5' : '1|2|3';
+  const pickupGuide = guitar === 'strat'
+    ? '1=Bridge,2=Bridge+Mid,3=Middle,4=Mid+Neck,5=Neck'
+    : '1=Bridge humbucker,2=Both,3=Neck humbucker';
   const isBand = document.getElementById('tog-band').checked;
   const useReverb = document.getElementById('tog-reverb').checked;
   const usePedals = document.getElementById('tog-pedals').checked;
   const hint = document.getElementById('hint-input').value.trim();
 
-  const btn = document.getElementById('go-btn');
-  btn.disabled = true; btn.textContent = 'Loading...';
-  document.getElementById('result-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Dialing in your tone...</div>`;
+  const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'solo'}.${hint ? ' Player note: ' + hint : ''}
 
-  const context = isBand ? 'playing WITH A BAND (drums, bass, keys, other instruments)' : 'playing SOLO (no other instruments)';
-  const bandGuidance = isBand
-    ? 'BAND MIX: Cut mids to carve space for bass/vocals, tighten bass, reduce reverb level and time, boost presence to cut through. Guitar must occupy its own frequency space.'
-    : 'SOLO: The guitar fills the full sonic space, but do not overdo bass — a Marshall already has a warm low end and too much bass goes boomy and undefined. Aim for full but controlled bass (typically 5-7 range). Mids can be boosted for warmth and presence. Wider EQ curve overall, but always controlled.';
+Key rules:
+- Classic Gain channel default; Ultra Gain only if song explicitly needs it
+- Build from low-gain foundation; edge-of-breakup not saturation
+- Bass tight; mids primary tone shaper; treble/presence last
+- Tone must clean up with lighter picking
+${guitar === 'lp' ? '- LP: reduce bass+gain vs single-coils; neck pickup only for clean tones' : ''}${guitar === 'strat' ? '- Strat: use mids for fullness not gain; clearest under gain' : ''}${guitar === 'es335' ? '- ES-335: avoid extra gain/bass; bridge for rock clarity; semi-hollow smooths highs' : ''}
+${isBand ? '- Band: cut bass, mid clarity over fullness, less reverb' : '- Solo: fuller mids, moderate reverb ok'}
+${useReverb ? '- RV-6: subtle only, level 1-3 typical' : ''}
+${usePedals ? '- Pedals only if song genuinely needs: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II)' : ''}
 
-  const reverbInstruction = useReverb
-    ? 'Include Boss RV-6 reverb settings. The player prefers subtle, restrained reverb — keep Level low (1-3 is typical, 4 max unless the song genuinely demands more like a surf or ambient piece). Time should be short to medium. The reverb should enhance the tone, not dominate it.'
-    : 'Do NOT include rv6 settings. Set rv6 to null.';
+Pickups: ${pickupGuide}
+Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
 
-  const pedalInstruction = usePedals
-    ? `Consider recommending pedals ONLY if they genuinely suit this song. Available pedals: Ibanez Tube Screamer TS9 (knobs: Drive 0-10, Tone 0-10, Level 0-10) and Boss DS-2 Turbo Distortion (knobs: Dist 0-10, Tone 0-10, Level 0-10, Mode "Turbo I" or "Turbo II"). If recommending, provide specific settings. If neither pedal suits the song, return an empty pedals array.`
-    : 'Do NOT recommend any pedals. Return empty pedals array.';
-
-  const hintInstruction = hint
-    ? `PLAYER INSTRUCTION — the player has specifically requested: "${hint}". Honor this in your recommendations. It overrides your own judgment where it applies.`
-    : '';
-
-  const guitar = mainGuitar;
-  selectedGuitar = guitar;
-  const guitarNames = { lp: 'Gibson Les Paul (humbuckers)', strat: 'Fender Stratocaster (single-coils)', es335: 'Epiphone ES-335 inspired by 1962 Gibson ES-335 (semi-hollow humbuckers)' };
-  const guitarName = guitarNames[guitar];
-
-  const pickupPositions = {
-    lp: 'Les Paul pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker',
-    strat: 'Strat pickup positions: 1=Bridge, 2=Bridge+Middle, 3=Middle, 4=Middle+Neck, 5=Neck',
-    es335: 'ES-335 pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker'
-  };
-  const pickupMax = guitar === 'strat' ? '1|2|3|4|5' : '1|2|3';
-  const notesGuitar = guitar === 'lp' ? 'Les Paul' : guitar === 'strat' ? 'Strat' : 'ES-335';
-
-  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (always Pentode/full 40W power, attenuator in use so recommend settings for tone character not room volume) and a ${guitarName}.
-
-Give settings for playing the song "${song}" on the ${guitarName}. The player is ${context}.
-${hintInstruction}
-
-${bandGuidance}
-${reverbInstruction}
-${pedalInstruction}
-
-GUITAR CHARACTER — ${guitarName}:
-${guitar === 'lp' ? '- Higher output humbuckers, warmer and thicker sound\n- Higher low-mid content increases mud risk under gain\n- Requires earlier bass and gain reduction than single-coils\n- Neck pickup only for clean or very light edge-of-breakup' : ''}${guitar === 'strat' ? '- Lower output single-coils, brighter and more dynamic\n- Clearest under gain with strong note separation\n- Use mids for fullness rather than increasing gain\n- Fully valid for rock tones, excellent dynamic response' : ''}${guitar === 'es335' ? '- Semi-hollow humbuckers, resonant and woody midrange\n- Sits between Strat clarity and Les Paul warmth\n- Naturally smooths highs — avoid overcompensating with extra gain or bass\n- Bridge pickup preferred for rock rhythm clarity, neck works for clean to medium breakup' : ''}
-
-Marshall DSL40 controls:
-Channel ("Clean/Classic Gain" or "Ultra Gain"), channelMode ("green"=cleaner headroom or "red"=more breakup), Tone Shift (bool), Gain 0-10, Channel Volume 0-10, Treble 0-10, Mid 0-10, Bass 0-10, Presence 0-10, Resonance 0-10, Master Volume 0-10.
-
-${pickupPositions[guitar]}
-Guitar Volume knob (0-10): recommend 10 unless song benefits from slight rollback.
-Guitar Tone knob (0=dark, 10=bright): always recommend a specific value.
-${guitar !== 'strat' ? 'When recommending Both humbuckers (position 2), specify which tone knob (bridge or neck) and value.' : ''}
-
-PLAYER RULES (follow strictly):
-${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
-
-Respond ONLY with valid JSON, no markdown:
-{
-  "song": "exact song name",
-  "artist": "artist name",
-  "genre": "genre",
-  "guitar": "${guitar}",
-  "guitarName": "${guitarName}",
-  "toneBadge": "Clean|Crunch|Lead|Heavy",
-  "channel": "Clean/Classic Gain|Ultra Gain",
-  "channelMode": "green|red",
-  "toneShift": true|false,
-  "gain": 0-10,
-  "channelVolume": 0-10,
-  "treble": 0-10,
-  "middle": 0-10,
-  "bass": 0-10,
-  "presence": 0-10,
-  "resonance": 0-10,
-  "masterVolume": 0-10,
-  "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
-  "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
-  "volume": 0-10,
-  "tone": 0-10,
-  "pickupName": "e.g. Bridge Humbucker",
-  "pickupPosition": ${pickupMax},
-  "pickupDesc": "1 sentence${guitar !== 'strat' ? ' — if Both pickups, specify which tone knob and value' : ''}",
-  "notes": "2 sentences on ${notesGuitar} specific tone approach for this song"
-}`;
+Respond ONLY valid JSON:
+{"song":"name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":true,"gain":5,"channelVolume":5,"treble":5,"middle":6,"bass":4,"presence":4,"resonance":4,"masterVolume":4,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":2,"time":3,"tone":5,"tip":"one sentence"}' : 'null'},"pedals":[],"volume":10,"tone":7,"pickupPosition":${pickupMax},"pickupName":"name","pickupDesc":"one sentence","notes":"two sentences"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
