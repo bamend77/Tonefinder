@@ -3,13 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-
 <meta name="description" content="Marshall DSL40 tone recommendations for Les Paul, Stratocaster and ES-335">
-
-
 <title>ToneFinder — Marshall DSL40</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -111,9 +105,9 @@
   .song-row input::placeholder { color: var(--dim); }
   .song-row input:focus { border-color: var(--accent); }
   .go-btn {
-    height: 46px; padding: 0 22px; border-radius: 6px;
+    flex: 1; height: 46px; padding: 0 16px; border-radius: 6px;
     border: none; background: var(--accent); color: #fff;
-    font-size: 14px; font-weight: 500; cursor: pointer;
+    font-size: 13px; font-weight: 500; cursor: pointer;
     font-family: 'DM Sans', sans-serif; transition: all 0.15s; white-space: nowrap;
   }
   .go-btn:hover { background: #c73608; }
@@ -481,6 +475,56 @@
   .detail-knob .dk-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #ffffff; line-height: 1.1; }
   .detail-notes { font-size: 12px; color: var(--text); font-style: italic; line-height: 1.6; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
 
+  /* MAIN GUITAR SELECTOR */
+  .guitar-select-row { display: flex; gap: 8px; margin-bottom: 0; }
+  .gsel-btn {
+    flex: 1; padding: 10px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; text-align: center; transition: all 0.15s; appearance: none;
+  }
+  .gsel-btn:hover { border-color: var(--border2); }
+  .gsel-btn.active { border-color: var(--accent); background: #1a0e0a; }
+  .gsel-name { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .gsel-btn.active .gsel-name { color: var(--accent2); }
+  .gsel-sub { font-size: 10px; color: var(--dim); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .gsel-btn.active .gsel-sub { color: var(--accent); }
+
+  /* ACTION BUTTONS ROW */
+  .action-row { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .rec-btn {
+    flex: 1; height: 46px; border-radius: 6px;
+    border: 1px solid var(--accent2); background: #1a1400;
+    color: var(--accent2); font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .rec-btn:hover { background: #252000; }
+  .rec-btn:active { transform: scale(0.97); }
+  .rec-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* RECOMMENDATION CARD */
+  .rec-card {
+    background: var(--surface); border: 1px solid var(--accent2);
+    border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+    animation: fadeUp 0.3s ease;
+  }
+  .rec-card-label { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent2); margin-bottom: 8px; }
+  .rec-guitar-btns { display: flex; gap: 8px; margin-bottom: 10px; }
+  .rec-guitar-opt {
+    flex: 1; padding: 9px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; text-align: center; transition: all 0.15s; appearance: none;
+  }
+  .rec-guitar-opt:hover { border-color: var(--border2); }
+  .rec-guitar-opt.rec-suggested { border-color: var(--accent2); background: #1a1400; }
+  .rec-guitar-opt.rec-selected { border-color: var(--accent); background: #1a0e0a; }
+  .rec-guitar-opt.rec-suggested.rec-selected { border-color: var(--accent); background: #1c1200; }
+  .rec-guitar-opt .rgo-name { font-size: 12px; font-weight: 500; color: var(--muted); }
+  .rec-guitar-opt.rec-suggested .rgo-name { color: var(--accent2); }
+  .rec-guitar-opt.rec-selected .rgo-name { color: var(--accent2); }
+  .rec-guitar-opt .rgo-tag { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .rec-reason { font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.55; }
+
   /* ── RESPONSIVE ── */
 
   /* Tablet (≤600px) */
@@ -677,21 +721,47 @@
 
   <div class="context-hint" id="ctx-hint">Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.</div>
 
-  <div class="mono-label">Enter a song</div>
-  <div class="song-row">
-    <input type="text" id="song-input" placeholder="e.g. Comfortably Numb, Back in Black, Texas Flood..." />
-    <button class="go-btn" id="go-btn" onclick="getSettings()">Get tone →</button>
+  <!-- Guitar selector (always visible) -->
+  <div class="mono-label">Select your guitar</div>
+  <div class="guitar-select-row" id="main-guitar-select">
+    <button class="gsel-btn active" id="gsel-lp" onclick="setMainGuitar('lp', this)">
+      <div class="gsel-name">Les Paul</div>
+      <div class="gsel-sub">Humbuckers</div>
+    </button>
+    <button class="gsel-btn" id="gsel-strat" onclick="setMainGuitar('strat', this)">
+      <div class="gsel-name">Stratocaster</div>
+      <div class="gsel-sub">Single-coils</div>
+    </button>
+    <button class="gsel-btn" id="gsel-es335" onclick="setMainGuitar('es335', this)">
+      <div class="gsel-name">ES-335</div>
+      <div class="gsel-sub">Semi-hollow</div>
+    </button>
   </div>
-  <div style="position:relative;margin-top:-1.25rem;margin-bottom:1.75rem">
-    <input type="text" id="hint-input" placeholder="Optional tone hint — e.g. bridge pickup, lead part, edge of breakup, SRV style..."
+
+  <!-- Song input -->
+  <div class="mono-label" style="margin-top:1.25rem">Enter a song</div>
+  <div class="song-row">
+    <input type="text" id="song-input" placeholder="e.g. Comfortably Numb, Black Dog, Texas Flood..." />
+  </div>
+  <div style="position:relative;margin-top:-1.25rem;margin-bottom:1.25rem">
+    <input type="text" id="hint-input" placeholder="Optional tone hint — e.g. bridge pickup, lead part, SRV style..."
       style="width:100%;height:36px;padding:0 14px 0 30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;color:var(--muted)"
       onfocus="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'"
       onblur="this.style.borderColor='var(--border)';if(!this.value)this.style.color='var(--muted)'">
     <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--dim);pointer-events:none">✎</span>
   </div>
 
+  <!-- Two action buttons -->
+  <div class="action-row">
+    <button class="rec-btn" id="rec-btn" onclick="recommendGuitar()">★ Recommend Guitar</button>
+    <button class="go-btn" id="go-btn" onclick="getSettings()">Get amp settings →</button>
+  </div>
+
+  <!-- Recommendation result (shows between buttons and main result) -->
+  <div id="rec-area"></div>
+
   <div id="result-area">
-    <div class="placeholder">Enter any song — the app recommends your guitar and dials in every setting</div>
+    <div class="placeholder">Select your guitar and enter a song to get dialled-in amp settings</div>
   </div>
 
   <footer>Marshall DSL40 · Gibson Les Paul · Fender Stratocaster · Epiphone ES-335 · Boss RV-6</footer>
@@ -815,6 +885,15 @@
 <script>
 let currentData = null;
 let selectedGuitar = null;
+let mainGuitar = 'lp'; // Guitar selected on main page
+
+function setMainGuitar(g, btn) {
+  mainGuitar = g;
+  document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // If there's already a result showing, re-render with new guitar
+  if (currentData) renderResult(currentData, g);
+}
 
 function showPage(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1212,13 +1291,13 @@ function knobHTML(label, val, color, hot) {
   </div>`;
 }
 
-function renderResult(s) {
+function renderResult(s, guitarOverride) {
   if (!s) return;
-  const isLP = selectedGuitar === 'lp';
-  const isStrat = selectedGuitar === 'strat';
-  const is335 = selectedGuitar === 'es335';
-  // Pull the full per-guitar profile (amp + guitar settings)
+  const guitar = guitarOverride || selectedGuitar;
+  const isLP = guitar === 'lp';
+  const is335 = guitar === 'es335';
   const p = isLP ? s.lespaul : is335 ? s.es335 : s.strat;
+  if (!p) return;
   const guitarLabel = isLP ? 'Gibson Les Paul' : is335 ? 'Epiphone ES-335' : 'Fender Stratocaster';
   const isBand = document.getElementById('tog-band').checked;
   const useReverb = document.getElementById('tog-reverb').checked;
@@ -1297,25 +1376,12 @@ function renderResult(s) {
     </div>
 
     <div class="guitar-card">
-      <div class="card-title">Recommended guitar — click to switch (all settings update)</div>
-      <div class="guitar-toggle">
-        <button class="guitar-opt ${s.recommendedGuitar === 'lp' ? 'recommended' : ''} ${selectedGuitar === 'lp' ? 'selected' : ''}" onclick="selectGuitar('lp')">
-          ${s.recommendedGuitar === 'lp' ? '<div class="rec-tag">★ Recommended</div>' : ''}
-          <div class="opt-name">Gibson Les Paul</div>
-          <div class="opt-sub">Humbuckers · Warm &amp; thick</div>
-        </button>
-        <button class="guitar-opt ${s.recommendedGuitar === 'strat' ? 'recommended' : ''} ${selectedGuitar === 'strat' ? 'selected' : ''}" onclick="selectGuitar('strat')">
-          ${s.recommendedGuitar === 'strat' ? '<div class="rec-tag">★ Recommended</div>' : ''}
-          <div class="opt-name">Fender Stratocaster</div>
-          <div class="opt-sub">Single-coils · Bright &amp; clear</div>
-        </button>
-        <button class="guitar-opt ${s.recommendedGuitar === 'es335' ? 'recommended' : ''} ${selectedGuitar === 'es335' ? 'selected' : ''}" onclick="selectGuitar('es335')">
-          ${s.recommendedGuitar === 'es335' ? '<div class="rec-tag">★ Recommended</div>' : ''}
-          <div class="opt-name">Epiphone ES-335</div>
-          <div class="opt-sub">Semi-hollow · Warm &amp; airy</div>
-        </button>
+      <div class="card-title">Settings for</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:16px;font-weight:500;color:var(--accent2)">${guitarLabel}</div>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:3px;background:var(--surface2);color:var(--dim);border:1px solid var(--border)">${isLP || is335 ? 'Humbuckers' : 'Single-coils'}</span>
       </div>
-      <div class="guitar-reason">${s.guitarReason}</div>
+      <div style="font-size:11px;color:var(--dim);margin-top:6px">To try a different guitar — select it above and hit Get amp settings again</div>
     </div>
 
     <div class="section-divider">
@@ -1419,15 +1485,17 @@ function saveSong() {
   if (!currentData) return;
   const isBand = document.getElementById('tog-band').checked;
   const useReverb = document.getElementById('tog-reverb').checked;
-  const p = selectedGuitar === 'lp' ? currentData.lespaul : selectedGuitar === 'es335' ? currentData.es335 : currentData.strat;
-  const guitarLabel = selectedGuitar === 'lp' ? 'Les Paul' : selectedGuitar === 'es335' ? 'ES-335' : 'Stratocaster';
+  const guitar = selectedGuitar || mainGuitar;
+  const p = guitar === 'lp' ? currentData.lespaul : guitar === 'es335' ? currentData.es335 : currentData.strat;
+  if (!p) return;
+  const guitarLabel = guitar === 'lp' ? 'Les Paul' : guitar === 'es335' ? 'ES-335' : 'Stratocaster';
 
   const entry = {
     id: Date.now(),
     song: currentData.song,
     artist: currentData.artist,
     genre: currentData.genre,
-    guitar: selectedGuitar,
+    guitar,
     guitarLabel,
     context: isBand ? 'Band' : 'Solo',
     useReverb,
@@ -1446,7 +1514,6 @@ function saveSong() {
   };
 
   const songs = getSavedSongs();
-  // Avoid exact duplicates (same song + guitar + context)
   const exists = songs.find(s => s.song === entry.song && s.guitar === entry.guitar && s.context === entry.context);
   if (!exists) songs.push(entry);
   setSavedSongs(songs);
@@ -1937,6 +2004,111 @@ function printSongs() {
   }
 }
 
+async function recommendGuitar() {
+  const song = document.getElementById('song-input').value.trim();
+  const apiKey = localStorage.getItem('anthropic_api_key');
+  if (!song) return;
+  if (!apiKey) {
+    document.getElementById('rec-area').innerHTML = '<div class="error-box">No API key. Go to Settings first.</div>';
+    return;
+  }
+
+  const btn = document.getElementById('rec-btn');
+  btn.disabled = true; btn.textContent = '★ Thinking...';
+  document.getElementById('rec-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Recommending guitar...</div>`;
+
+  const isBand = document.getElementById('tog-band').checked;
+  const context = isBand ? 'playing WITH A BAND' : 'playing SOLO';
+
+  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (always on Classic Gain channel, Pentode/full power, edge-of-breakup philosophy) and three guitars:
+- Gibson Les Paul (humbuckers) — id: "lp"
+- Fender Stratocaster (single-coils) — id: "strat"
+- Epiphone ES-335 inspired by 1962 Gibson ES-335 (semi-hollow humbuckers) — id: "es335"
+
+The player is ${context}.
+
+PLAYER KNOWLEDGE RULES (must influence recommendation):
+${getRulesForPrompt()}
+
+For the song "${song}", recommend which guitar best serves the tone — considering the Marshall DSL40's character, the player's edge-of-breakup philosophy, and the song's requirements. No guitar is a default — choose based purely on what serves the song on THIS amp.
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "recommendedGuitar": "lp|strat|es335",
+  "guitarName": "full name e.g. Gibson Les Paul",
+  "reason": "2 sentences — why this guitar on a Marshall DSL40 for this song specifically, referencing amp character and tone philosophy"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey.trim(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      const type = data.error.type || '';
+      if (res.status === 401 || type === 'authentication_error') throw new Error('Invalid API key — check Settings.');
+      throw new Error(data.error.message);
+    }
+
+    const text = data.content.map(i => i.text || '').join('');
+    const r = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+    // Update main guitar selector to match recommendation
+    mainGuitar = r.recommendedGuitar;
+    document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
+    const selBtn = document.getElementById('gsel-' + r.recommendedGuitar);
+    if (selBtn) selBtn.classList.add('active');
+
+    // Show recommendation card
+    const guitars = [
+      { id: 'lp', name: 'Les Paul', sub: 'Humbuckers' },
+      { id: 'strat', name: 'Stratocaster', sub: 'Single-coils' },
+      { id: 'es335', name: 'ES-335', sub: 'Semi-hollow' }
+    ];
+
+    document.getElementById('rec-area').innerHTML = `<div class="rec-card">
+      <div class="rec-card-label">★ Guitar recommendation for "${song}"</div>
+      <div class="rec-guitar-btns">
+        ${guitars.map(g => `<button class="rec-guitar-opt ${g.id === r.recommendedGuitar ? 'rec-suggested' : ''} ${g.id === mainGuitar ? 'rec-selected' : ''}"
+          onclick="pickRecGuitar('${g.id}', this)">
+          ${g.id === r.recommendedGuitar ? '<div class="rgo-tag">★ Recommended</div>' : ''}
+          <div class="rgo-name">${g.name}</div>
+          <div class="gsel-sub">${g.sub}</div>
+        </button>`).join('')}
+      </div>
+      <div class="rec-reason">${r.reason}</div>
+    </div>`;
+
+  } catch(e) {
+    document.getElementById('rec-area').innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
+  }
+
+  btn.disabled = false; btn.textContent = '★ Recommend Guitar';
+}
+
+function pickRecGuitar(g, btn) {
+  mainGuitar = g;
+  // Update rec card buttons
+  document.querySelectorAll('.rec-guitar-opt').forEach(b => b.classList.remove('rec-selected'));
+  btn.classList.add('rec-selected');
+  // Update main guitar selector too
+  document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
+  const selBtn = document.getElementById('gsel-' + g);
+  if (selBtn) selBtn.classList.add('active');
+}
+
 async function getSettings() {
   const song = document.getElementById('song-input').value.trim();
   const rawKey = localStorage.getItem('anthropic_api_key');
@@ -1977,115 +2149,69 @@ async function getSettings() {
     ? `PLAYER INSTRUCTION — the player has specifically requested: "${hint}". Honor this in your recommendations. It overrides your own judgment where it applies.`
     : '';
 
-  const prompt = `You are a guitar tone expert. The user has a Marshall DSL40 tube amp, three guitars (Gibson Les Paul with humbuckers, Fender Stratocaster with single-coils, and an Epiphone ES-335 inspired by the 1962 Gibson ES-335 — semi-hollow with humbuckers), and a Boss RV-6 reverb pedal.
+  const guitar = mainGuitar;
+  selectedGuitar = guitar;
+  const guitarNames = { lp: 'Gibson Les Paul (humbuckers)', strat: 'Fender Stratocaster (single-coils)', es335: 'Epiphone ES-335 inspired by 1962 Gibson ES-335 (semi-hollow humbuckers)' };
+  const guitarName = guitarNames[guitar];
 
-Give settings for playing the song "${song}". The player is ${context}.
+  const pickupPositions = {
+    lp: 'Les Paul pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker',
+    strat: 'Strat pickup positions: 1=Bridge, 2=Bridge+Middle, 3=Middle, 4=Middle+Neck, 5=Neck',
+    es335: 'ES-335 pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker'
+  };
+  const pickupMax = guitar === 'strat' ? '1|2|3|4|5' : '1|2|3';
+  const notesGuitar = guitar === 'lp' ? 'Les Paul' : guitar === 'strat' ? 'Strat' : 'ES-335';
+
+  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (always Pentode/full 40W power, attenuator in use so recommend settings for tone character not room volume) and a ${guitarName}.
+
+Give settings for playing the song "${song}" on the ${guitarName}. The player is ${context}.
 ${hintInstruction}
 
 ${bandGuidance}
 ${reverbInstruction}
 ${pedalInstruction}
 
-Marshall DSL40: Always assume Pentode mode (full 40W power). The player uses an attenuator, so recommend settings purely for the ideal tone for the song — ignore room volume entirely.
+GUITAR CHARACTER — ${guitarName}:
+${guitar === 'lp' ? '- Higher output humbuckers, warmer and thicker sound\n- Higher low-mid content increases mud risk under gain\n- Requires earlier bass and gain reduction than single-coils\n- Neck pickup only for clean or very light edge-of-breakup' : ''}${guitar === 'strat' ? '- Lower output single-coils, brighter and more dynamic\n- Clearest under gain with strong note separation\n- Use mids for fullness rather than increasing gain\n- Fully valid for rock tones, excellent dynamic response' : ''}${guitar === 'es335' ? '- Semi-hollow humbuckers, resonant and woody midrange\n- Sits between Strat clarity and Les Paul warmth\n- Naturally smooths highs — avoid overcompensating with extra gain or bass\n- Bridge pickup preferred for rock rhythm clarity, neck works for clean to medium breakup' : ''}
 
-Channel Volume and Master Volume interact to shape tone: Channel Volume sets preamp gain staging; Master Volume drives the power amp. Set both at whatever level produces the correct tone for the song — there is no default, no preferred range. A song may call for low master and high channel, or high master and low channel, or anywhere in between. Let the song decide.
+Marshall DSL40 controls:
+Channel ("Clean/Classic Gain" or "Ultra Gain"), channelMode ("green"=cleaner headroom or "red"=more breakup), Tone Shift (bool), Gain 0-10, Channel Volume 0-10, Treble 0-10, Mid 0-10, Bass 0-10, Presence 0-10, Resonance 0-10, Master Volume 0-10.
 
-Channel ("Clean/Classic Gain" or "Ultra Gain"), channelMode ("green" or "red" — Clean/Classic Gain: green=cleaner headroom, red=more breakup; Ultra Gain: green=tighter modern, red=looser vintage), Tone Shift (bool), Gain 0-10, Channel Volume 0-10, Treble 0-10, Mid 0-10, Bass 0-10, Presence 0-10, Resonance 0-10, Master Volume 0-10.
+${pickupPositions[guitar]}
+Guitar Volume knob (0-10): recommend 10 unless song benefits from slight rollback.
+Guitar Tone knob (0=dark, 10=bright): always recommend a specific value.
+${guitar !== 'strat' ? 'When recommending Both humbuckers (position 2), specify which tone knob (bridge or neck) and value.' : ''}
 
-Provide completely separate amp settings for each guitar — each has a different output level and tonal character that affects the ideal amp settings:
-- Gibson Les Paul (humbuckers): higher output, warmer, thicker
-- Fender Stratocaster (single-coils): lower output, brighter, more dynamic
-- Epiphone ES-335 (semi-hollow humbuckers): resonant, woody midrange, slightly microphonic character
-
-PICKUP SELECTION: Choose whatever pickup position best serves the song. Each position has a different tonal character — use that knowledge to match the song.
-
-Les Paul pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker
-Strat pickup positions: 1=Bridge, 2=Bridge+Middle, 3=Middle, 4=Middle+Neck, 5=Neck
-ES-335 pickup positions: 1=Bridge humbucker, 2=Both humbuckers, 3=Neck humbucker
-
-GUITAR KNOB GUIDANCE for Les Paul and ES-335:
-- The Tone knob (0=dark/rolled off, 10=fully open/bright) significantly affects character. Always recommend a specific tone value that suits the pickup and song.
-- The Volume knob on the guitar (0-10) interacts with the amp. Recommend 10 for full output unless the song benefits from a slight rollback.
-- When recommending Both humbuckers (position 2), specify which tone knob to use — bridge tone or neck tone — and what value, since each controls a different pickup.
-
-PLAYER KNOWLEDGE — the following rules have been set by the player and must be followed:
+PLAYER KNOWLEDGE RULES (must be strictly followed):
 ${getRulesForPrompt()}
-
-The rv6 and pedals fields inside each guitar profile should reflect what's best for that guitar specifically.
 
 Respond ONLY with valid JSON, no markdown:
 {
   "song": "exact song name",
   "artist": "artist name",
   "genre": "genre",
-  "recommendedGuitar": "lp|strat|es335",
-  "guitarReason": "1 sentence why this guitar suits the song best",
-  "lespaul": {
-    "toneBadge": "Clean|Crunch|Lead|Heavy",
-    "channel": "Clean/Classic Gain|Ultra Gain",
-    "channelMode": "green|red",
-    "toneShift": true|false,
-    "gain": 0-10,
-    "channelVolume": 0-10,
-    "treble": 0-10,
-    "middle": 0-10,
-    "bass": 0-10,
-    "presence": 0-10,
-    "resonance": 0-10,
-    "masterVolume": 0-10,
-    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
-    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
-    "volume": 0-10,
-    "tone": 0-10,
-    "pickupName": "e.g. Bridge Humbucker",
-    "pickupPosition": 1|2|3,
-    "pickupDesc": "1 sentence — if Both pickups, specify which tone knob (bridge or neck) and value",
-    "notes": "2 sentences on Les Paul specific tone approach for this song"
-  },
-  "strat": {
-    "toneBadge": "Clean|Crunch|Lead|Heavy",
-    "channel": "Clean/Classic Gain|Ultra Gain",
-    "channelMode": "green|red",
-    "toneShift": true|false,
-    "gain": 0-10,
-    "channelVolume": 0-10,
-    "treble": 0-10,
-    "middle": 0-10,
-    "bass": 0-10,
-    "presence": 0-10,
-    "resonance": 0-10,
-    "masterVolume": 0-10,
-    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
-    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
-    "volume": 0-10,
-    "tone": 0-10,
-    "pickupName": "e.g. Neck Single-Coil",
-    "pickupPosition": 1|2|3|4|5,
-    "pickupDesc": "1 sentence",
-    "notes": "2 sentences on Strat specific tone approach for this song"
-  },
-  "es335": {
-    "toneBadge": "Clean|Crunch|Lead|Heavy",
-    "channel": "Clean/Classic Gain|Ultra Gain",
-    "channelMode": "green|red",
-    "toneShift": true|false,
-    "gain": 0-10,
-    "channelVolume": 0-10,
-    "treble": 0-10,
-    "middle": 0-10,
-    "bass": 0-10,
-    "presence": 0-10,
-    "resonance": 0-10,
-    "masterVolume": 0-10,
-    "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
-    "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
-    "volume": 0-10,
-    "tone": 0-10,
-    "pickupName": "e.g. Neck Humbucker",
-    "pickupPosition": 1|2|3,
-    "pickupDesc": "1 sentence",
-    "notes": "2 sentences on ES-335 specific tone approach for this song — mention the semi-hollow character"
-  }
+  "guitar": "${guitar}",
+  "guitarName": "${guitarName}",
+  "toneBadge": "Clean|Crunch|Lead|Heavy",
+  "channel": "Clean/Classic Gain|Ultra Gain",
+  "channelMode": "green|red",
+  "toneShift": true|false,
+  "gain": 0-10,
+  "channelVolume": 0-10,
+  "treble": 0-10,
+  "middle": 0-10,
+  "bass": 0-10,
+  "presence": 0-10,
+  "resonance": 0-10,
+  "masterVolume": 0-10,
+  "rv6": ${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0-10,"time":0-10,"tone":0-10,"tip":"1 sentence"}' : 'null'},
+  "pedals": [{"name":"pedal name","role":"e.g. Overdrive Boost","knobs":[{"label":"Drive","value":0-10}],"tip":"1 sentence"}],
+  "volume": 0-10,
+  "tone": 0-10,
+  "pickupName": "e.g. Bridge Humbucker",
+  "pickupPosition": ${pickupMax},
+  "pickupDesc": "1 sentence${guitar !== 'strat' ? ' — if Both pickups, specify which tone knob and value' : ''}",
+  "notes": "2 sentences on ${notesGuitar} specific tone approach for this song"
 }`;
 
   try {
@@ -2099,7 +2225,7 @@ Respond ONLY with valid JSON, no markdown:
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3200,
+        max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -2119,16 +2245,24 @@ Respond ONLY with valid JSON, no markdown:
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
-    currentData = s;
-    selectedGuitar = s.recommendedGuitar;
-    renderResult(s);
+
+    // Wrap flat response into the per-guitar structure renderResult expects
+    const wrapped = {
+      song: s.song, artist: s.artist, genre: s.genre,
+      recommendedGuitar: guitar,
+      guitarReason: ''
+    };
+    wrapped[guitar] = s;
+    currentData = wrapped;
+    selectedGuitar = guitar;
+    renderResult(wrapped, guitar);
 
   } catch(e) {
     document.getElementById('result-area').innerHTML = `<div class="error-box">Error: ${e.message || 'Something went wrong. Check your API key in Settings.'}</div>`;
   }
 
   btn.disabled = false;
-  btn.textContent = 'Get tone →';
+  btn.textContent = 'Get amp settings →';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -2142,7 +2276,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('hint-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') getSettings();
   });
-
 });
 </script>
 </body>
