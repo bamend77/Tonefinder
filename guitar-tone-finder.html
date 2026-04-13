@@ -824,7 +824,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.4 · April 13 2026 · 5:30pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.5 · April 13 2026 · 6:00pm</div>
   </div>
 
   <div class="settings-card">
@@ -2013,23 +2013,11 @@ async function recommendGuitar() {
   const isBand = document.getElementById('tog-band').checked;
   const context = isBand ? 'playing WITH A BAND' : 'playing SOLO';
 
-  const guitarRules = DEFAULT_RULES.filter(r => r.id === 'rule-3' || r.id === 'rule-4');
-  const guitarRulesText = guitarRules.map(r => `${r.title.toUpperCase()}:\n${r.bullets.map(b => '- ' + b).join('\n')}`).join('\n\n');
+  const prompt = `I play a Marshall DSL40 amp. I have 3 guitars: Gibson Les Paul (humbuckers), Fender Stratocaster (single-coils), Epiphone ES-335 (semi-hollow humbuckers).
 
-  const prompt = `Song: "${song}". Amp: Marshall DSL40 (Classic Gain channel, Pentode, edge-of-breakup tone philosophy — not high gain, not saturated).
+For the song "${song}", which guitar best suits the song's character and tone on a Marshall DSL40?
 
-First, consider the tonal character of this song: is it clean or dirty, warm or bright, tight or loose, rhythm or lead focused? What does the song's feel and genre require from the guitar tone?
-
-Then choose which of these 3 guitars best serves that tonal character on this amp:
-- Gibson Les Paul (humbuckers)
-- Fender Stratocaster (single-coils)
-- Epiphone ES-335 (semi-hollow humbuckers)
-
-${guitarRulesText}
-
-No guitar is a default — choose based on what the song's tonal character needs from this amp at edge-of-breakup.
-
-Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — describe the song's tonal character and why this guitar serves it on a Marshall DSL40"}`;
+Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
