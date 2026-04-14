@@ -824,7 +824,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.10 · April 13 2026 · 8:00pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.11 · April 13 2026 · 8:30pm</div>
   </div>
 
   <div class="settings-card">
@@ -2091,18 +2091,15 @@ async function getSettings() {
 
   const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'solo'}.${hint ? ' Player note: ' + hint : ''}
 
-Key rules:
-- Classic Gain channel default; Ultra Gain only if song explicitly needs it
-- Match the song first — clean tones for clean songs, crunch only if the song needs it
-- Bass tight; mids primary tone shaper; treble/presence last
-- Tone must clean up with lighter picking
-${guitar === 'lp' ? '- LP: reduce bass+gain vs single-coils; neck pickup only for clean tones' : ''}${guitar === 'strat' ? '- Strat: use mids for fullness not gain; clearest under gain' : ''}${guitar === 'es335' ? '- ES-335: avoid extra gain/bass; bridge for rock clarity; semi-hollow smooths highs' : ''}
-${isBand ? '- Band: cut bass, mid clarity over fullness, less reverb' : '- Solo: fuller mids, moderate reverb ok'}
-${useReverb ? '- RV-6: subtle only, level 1-3 typical' : ''}
-${usePedals ? '- Pedals only if song genuinely needs: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II)' : ''}
+${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'Solo: fuller mids, moderate reverb ok.'}
+${useReverb ? 'Include RV-6 reverb: subtle only, level 1-3 typical.' : ''}
+${usePedals ? 'Pedals only if genuinely needed: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II).' : ''}
 
 Pickups: ${pickupGuide}
 Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
+
+PLAYER KNOWLEDGE RULES — follow these strictly, they override your default judgment:
+${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
 
 Respond ONLY with valid JSON, no extra text:
 {"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}
