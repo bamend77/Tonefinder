@@ -684,9 +684,9 @@
 
   <!-- Toggles -->
   <div class="toggle-row">
-    <div class="toggle-row-label">Context: <strong id="lbl-context">Playing Solo</strong></div>
+    <div class="toggle-row-label">Context: <strong id="lbl-context">Playing Without a Band</strong></div>
     <div class="toggle-wrap">
-      <span class="topt on" id="opt-solo">Solo</span>
+      <span class="topt on" id="opt-solo">No Band</span>
       <label class="tsw">
         <input type="checkbox" id="tog-band" onchange="updateToggles()">
         <div class="ttrack"><div class="tthumb"></div></div>
@@ -825,7 +825,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.13 · April 13 2026 · 9:15pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.14 · April 13 2026 · 9:30pm</div>
   </div>
 
   <div class="settings-card">
@@ -957,12 +957,12 @@ const DEFAULT_RULES = [
   {
     id: 'rule-5', order: 5, builtin: true,
     title: 'Effects + Context',
-    priority: 'Includes Solo vs Band',
+    priority: 'Includes No Band vs With Band',
     bullets: [
       'Reverb must remain subtle and supportive; it should enhance space, not define tone.',
       'Assume an attenuator is in use; set amp tone for character and response, not room loudness.',
       'Do not compensate for low volume by increasing gain excessively.',
-      'SOLO: Can sound slightly fuller and more spacious; moderate reverb and slightly richer mids are acceptable.',
+      'PLAYING WITHOUT A BAND: Can sound slightly fuller and more spacious; moderate reverb and slightly richer mids are acceptable.',
       'BAND/MIX: Reduce bass, prioritize mid clarity and cut-through; tone may sound slightly lean alone but must sit correctly in a mix.',
       'Never use increased gain to solve mix problems.',
       'Mix clarity is achieved through EQ and pickup choice, not distortion level.'
@@ -1133,7 +1133,7 @@ function updateToggles() {
 
   document.getElementById('opt-solo').classList.toggle('on', !isBand);
   document.getElementById('opt-band').classList.toggle('on', isBand);
-  document.getElementById('lbl-context').textContent = isBand ? 'Playing With a Band' : 'Playing Solo';
+  document.getElementById('lbl-context').textContent = isBand ? 'Playing With a Band' : 'Playing Without a Band';
 
   document.getElementById('opt-reverb-no').classList.toggle('on', !useReverb);
   document.getElementById('opt-reverb-yes').classList.toggle('on', useReverb);
@@ -1142,7 +1142,7 @@ function updateToggles() {
 
   const hints = {
     true:  'Band mix: cut mids to carve space, tighter bass, less reverb — sitting alongside drums, bass, and keys.',
-    false: 'Solo: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.'
+    false: 'No band: fuller bass, more reverb, wider EQ — you fill the whole sonic space yourself.'
   };
   // ctx-hint removed from UI — solo/band hint shown in toggle label only
 }
@@ -1371,7 +1371,7 @@ function renderResult(p, guitar) {
         <div class="song-title">${p.song}</div>
         <div class="song-meta">${p.artist} &nbsp;·&nbsp; ${p.genre}</div>
         <div class="song-tags">
-          <span class="ctx-tag" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44">${isBand ? 'Band Mix' : 'Solo'}</span>
+          <span class="ctx-tag" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44">${isBand ? 'Band Mix' : 'No Band'}</span>
           ${useReverb ? '<span class="ctx-tag" style="background:#0a1520;color:#4a9eff;border:1px solid #1a3a5a44">RV-6 On</span>' : ''}
           ${usePedals && p.pedals && p.pedals.length > 0 ? '<span class="ctx-tag" style="background:#1f1600;color:#f5a623;border:1px solid #4a3a0044">Pedals</span>' : ''}
           ${document.getElementById('hint-input').value.trim() ? `<span class="ctx-tag" style="background:#0f1a0f;color:#7dcc7d;border:1px solid #2a4a2a44">✎ ${document.getElementById('hint-input').value.trim()}</span>` : ''}
@@ -1502,7 +1502,7 @@ function saveSong() {
     genre: currentData.genre,
     guitar,
     guitarLabel,
-    context: isBand ? 'Band' : 'Solo',
+    context: isBand ? 'Band' : 'No Band',
     useReverb,
     toneBadge: p.toneBadge,
     channel: p.channel,
@@ -2020,7 +2020,7 @@ async function recommendGuitar() {
   document.getElementById('rec-area').innerHTML = `<div class="loading"><div class="spinner"></div><br>Analysing song...</div>`;
 
   const isBand = document.getElementById('tog-band').checked;
-  const context = isBand ? 'band mix' : 'solo';
+  const context = isBand ? 'band mix' : 'playing without a band';
 
   const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (Classic Gain channel, Pentode/full power, edge-of-breakup philosophy — not high gain, not saturated). They are playing ${context}.
 
@@ -2096,9 +2096,9 @@ async function getSettings() {
   const usePedals = document.getElementById('tog-pedals').checked;
   const hint = document.getElementById('hint-input').value.trim();
 
-  const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'solo'}.${hint ? ' Player note: ' + hint : ''}
+  const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
 
-${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'Solo: fuller mids, moderate reverb ok.'}
+${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'No band (playing alone): fuller mids, moderate reverb ok — the guitar fills the full sonic space.'}
 ${useReverb ? 'Include RV-6 reverb: subtle only, level 1-3 typical.' : ''}
 ${usePedals ? 'Pedals only if genuinely needed: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II).' : ''}
 
