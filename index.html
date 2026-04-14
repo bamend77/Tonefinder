@@ -830,7 +830,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.8 · April 13 2026 · 7:15pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.10 · April 13 2026 · 8:00pm</div>
   </div>
 
   <div class="settings-card">
@@ -917,8 +917,10 @@ const DEFAULT_RULES = [
     title: 'Core Execution Rules',
     priority: 'HIGHEST PRIORITY',
     bullets: [
-      'Never start from high-gain or high-volume settings. All tones must be built from a low-to-medium gain foundation.',
-      'Build tones progressively: clean/edge-of-breakup → crunch → higher gain only if musically required.',
+      'Match the tone to what the song requires first. Clean, edge-of-breakup, crunch, and lead tones are all equally valid — choose based on the song, not a system preference.',
+      'When the song requires a clean tone, deliver a clean tone. Do not default to edge-of-breakup. Songs like Under the Bridge, Blackbird, Wonderful Tonight require a clean foundation.',
+      'Never start from high-gain settings. All tones must be built from a low-to-medium gain foundation.',
+      'Build tones progressively: clean → edge-of-breakup → crunch → higher gain only if musically required.',
       'Classic rock tones (e.g. Black Dog by Led Zeppelin) must be crunchy, open, and dynamic — not high-gain or saturated.',
       'Prioritize pick attack, dynamics, and clarity over compression or sustain.',
       'Tone must remain responsive to playing dynamics and clean up with lighter picking or guitar volume changes.'
@@ -934,7 +936,7 @@ const DEFAULT_RULES = [
       'Keep bass tight; reduce bass first if tone is unclear or muddy.',
       'Use mids as the primary tone-shaping control.',
       'Treble and presence are final adjustments only for brightness/edge control.',
-      'Keep gain in the dynamic breakup/crunch range rather than saturated distortion.'
+      'For clean tones keep gain low (2-4). For edge-of-breakup (4-6). For crunch (6-7). Never push into saturated distortion unless the song demands it.'
     ]
   },
   {
@@ -943,9 +945,9 @@ const DEFAULT_RULES = [
     priority: 'NO DEFAULT GUITAR',
     bullets: [
       'Do not default to any single guitar as "best" or "standard."',
-      'Guitar selection must be driven by tone requirements, not output level, genre, or perceived versatility.',
+      'Guitar selection must be driven by what the song requires tonally — clean, warm, bright, dynamic, thick.',
       'Strat, Les Paul, and ES-style guitars are equal tools in this system.',
-      'Selection must always serve dynamic, edge-of-breakup behavior on a Marshall DSL40.'
+      'Selection must always serve the song\'s tonal requirements on a Marshall DSL40 — not assumed to always be at edge-of-breakup.'
     ]
   },
   {
@@ -1319,7 +1321,7 @@ function renderResult(p, guitar) {
   let pedalHTML = '';
   if (usePedals && p.pedals && p.pedals.length > 0) {
     const pedalItems = p.pedals.map(pd => {
-      const pedalKnobs = pd.knobs.map(k => knobHTML(k.label, k.value, '#f5a623', false)).join('');
+      const pedalKnobs = (pd.knobs || []).map(k => knobHTML(k.label, k.value, '#f5a623', false)).join('');
       return `<div class="pedal-item">
         <div class="pedal-header">
           <div class="pedal-name">${pd.name}</div>
@@ -1608,7 +1610,7 @@ function renderSongLibrary() {
     const pedalsHTML = s.pedals && s.pedals.length ? s.pedals.map(pd =>
       `<div class="detail-section">
         <div class="detail-section-label">${pd.name} — ${pd.role}</div>
-        <div class="detail-knob-row">${pd.knobs.map(k => dkDial(k.label, k.value, '#f5a623')).join('')}</div>
+        <div class="detail-knob-row">${(pd.knobs || []).map(k => dkDial(k.label, k.value, '#f5a623')).join('')}</div>
       </div>`).join('') : '';
 
     return `<div class="song-row-item" id="sri-${s.id}" draggable="true" data-id="${s.id}"
@@ -2026,7 +2028,7 @@ They have 3 guitars:
 - Fender Stratocaster (single-coils)
 - Epiphone ES-335 (semi-hollow humbuckers)
 
-For the song "${song}", recommend the best guitar based on the song's tonal character and how each guitar interacts with the Marshall DSL40 at edge-of-breakup.
+For the song "${song}", recommend the best guitar based on the song's tonal character and how each guitar suits that on a Marshall DSL40.
 
 PLAYER KNOWLEDGE RULES (must guide this recommendation):
 ${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
@@ -2097,7 +2099,7 @@ async function getSettings() {
 
 Key rules:
 - Classic Gain channel default; Ultra Gain only if song explicitly needs it
-- Build from low-gain foundation; edge-of-breakup not saturation
+- Match the song first — clean tones for clean songs, crunch only if the song needs it
 - Bass tight; mids primary tone shaper; treble/presence last
 - Tone must clean up with lighter picking
 ${guitar === 'lp' ? '- LP: reduce bass+gain vs single-coils; neck pickup only for clean tones' : ''}${guitar === 'strat' ? '- Strat: use mids for fullness not gain; clearest under gain' : ''}${guitar === 'es335' ? '- ES-335: avoid extra gain/bass; bridge for rock clarity; semi-hollow smooths highs' : ''}
@@ -2109,7 +2111,7 @@ Pickups: ${pickupGuide}
 Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
 
 Respond ONLY with valid JSON, no extra text:
-{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}
+{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}
 
 Replace every 0 with the correct value for the song. All numbers 0-10.`;
 
