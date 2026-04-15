@@ -641,6 +641,7 @@
   #print-area { display: none; }
 
   @media print {
+    body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; }
     body > *:not(#print-area) { display: none !important; }
     #print-area { display: block !important; font-family: Arial, sans-serif; color: #000; background: #fff; margin: 0; padding: 8px; }
     .phead { margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
@@ -738,8 +739,11 @@
 
   <!-- Song input -->
   <div class="mono-label" style="margin-top:1.25rem">Enter a song</div>
-  <div class="song-row">
-    <input type="text" id="song-input" placeholder="e.g. Comfortably Numb, Black Dog, Texas Flood..." />
+  <div class="song-row" style="position:relative">
+    <input type="text" id="song-input" placeholder="e.g. Comfortably Numb, Black Dog, Texas Flood..." style="padding-right:36px" />
+    <button onclick="clearSongInput()" title="Clear"
+      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:4px;line-height:1;display:flex;align-items:center;justify-content:center"
+      onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'">✕</button>
   </div>
   <div style="position:relative;margin-top:-1.25rem;margin-bottom:1.25rem">
     <input type="text" id="hint-input" placeholder="Optional tone hint — e.g. bridge pickup, lead part, SRV style..."
@@ -825,7 +829,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.14 · April 13 2026 · 9:30pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.17 · April 14 2026 · 9:15am</div>
   </div>
 
   <div class="settings-card">
@@ -886,6 +890,13 @@
 let currentData = null;
 let selectedGuitar = null;
 let mainGuitar = 'lp'; // Guitar selected on main page
+
+function clearSongInput() {
+  document.getElementById('song-input').value = '';
+  document.getElementById('song-input').focus();
+  document.getElementById('rec-area').innerHTML = '';
+  document.getElementById('result-area').innerHTML = '<div class="placeholder">Select your guitar and enter a song to get dialled-in amp settings</div>';
+}
 
 function setMainGuitar(g, btn) {
   mainGuitar = g;
@@ -956,6 +967,20 @@ const DEFAULT_RULES = [
   },
   {
     id: 'rule-5', order: 5, builtin: true,
+    title: 'Guitar Volume as Gain Staging',
+    priority: 'Dynamic Control',
+    bullets: [
+      'Do NOT default to guitar volume at 10. Treat guitar volume as a dynamic gain staging control (range 5–10), not a loudness knob.',
+      'Volume 5–6: significantly darker and warmer tone, strong mid focus, amp runs cleaner, reduced pick attack transient — useful for rhythm parts needing warmth and smoothness.',
+      'Volume 7–8: balanced brightness, increased touch sensitivity, amp starts to respond dynamically to pick attack — breakup appears naturally when digging in, cleans up with lighter playing. This is the sweet spot for edge-of-breakup on a tube amp.',
+      'Volume 9–10: full output, brightest tone, maximum pick attack and transient response, amp pushed hardest — use when the song needs full sustain, lead tone, or maximum breakup response.',
+      'Guitar volume directly shapes preamp distortion on a tube amp — rolling back from 10 to 7 can transform a saturated tone into a dynamic, touch-sensitive crunch without touching the amp.',
+      'When using overdrive pedals (Tube Screamer, DS-2), guitar volume interacts with pedal gain — a lower guitar volume with higher pedal drive gives a different character than full volume with lower drive. Always consider this interaction.',
+      'Never set guitar volume at 10 as a default. Always choose the volume that serves the song\'s touch sensitivity and gain staging requirements.'
+    ]
+  },
+  {
+    id: 'rule-6', order: 6, builtin: true,
     title: 'Effects + Context',
     priority: 'Includes No Band vs With Band',
     bullets: [
@@ -969,7 +994,7 @@ const DEFAULT_RULES = [
     ]
   },
   {
-    id: 'rule-6', order: 6, builtin: true,
+    id: 'rule-7', order: 7, builtin: true,
     title: 'Style Translation Rules',
     priority: 'Genre Reference',
     bullets: [
@@ -979,7 +1004,7 @@ const DEFAULT_RULES = [
     ]
   },
   {
-    id: 'rule-7', order: 7, builtin: true,
+    id: 'rule-8', order: 8, builtin: true,
     title: 'Final Principle',
     priority: 'SYSTEM-WIDE CONSTRAINT',
     bullets: [
