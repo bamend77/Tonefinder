@@ -363,7 +363,8 @@
   .sri-title { font-size: 14px; font-weight: 500; color: #ffffff; flex: 1; }
   .sri-meta { font-size: 11px; color: var(--muted); }
   .sri-guitar { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; background: #1a1400; color: var(--accent2); border: 1px solid #4a3a00; white-space: nowrap; }
-  .sri-badge { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; white-space: nowrap; }
+  .sri-tuned { font-family: 'DM Mono', monospace; font-size: 9px; padding: 3px 8px; border-radius: 3px; white-space: nowrap; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--dim); transition: all 0.15s; }
+  .sri-tuned.tuned { background: #0d1f0d; color: #7dcc7d; border-color: #2a4a2a; }
   .sri-context { font-family: 'DM Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); white-space: nowrap; }
   .sri-chevron { color: var(--dim); font-size: 11px; transition: transform 0.2s; flex-shrink: 0; }
   .song-row-item.expanded .sri-chevron { transform: rotate(90deg); }
@@ -753,10 +754,13 @@
   </div>
   <div style="position:relative;margin-top:-1.25rem;margin-bottom:1.25rem">
     <input type="text" id="hint-input" placeholder="Optional tone hint — e.g. bridge pickup, lead part, SRV style..."
-      style="width:100%;height:36px;padding:0 14px 0 30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;color:var(--muted)"
+      style="width:100%;height:36px;padding:0 36px 0 30px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;color:var(--muted)"
       onfocus="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'"
       onblur="this.style.borderColor='var(--border)';if(!this.value)this.style.color='var(--muted)'">
     <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--dim);pointer-events:none">✎</span>
+    <button onclick="document.getElementById('hint-input').value='';document.getElementById('hint-input').focus()" title="Clear"
+      style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--dim);font-size:14px;cursor:pointer;padding:4px;line-height:1"
+      onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'">✕</button>
   </div>
 
   <!-- Two separate action buttons -->
@@ -835,7 +839,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.26 · April 14 2026 · 1:30pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.27 · April 14 2026 · 2:00pm</div>
   </div>
 
   <div class="settings-card">
@@ -1427,10 +1431,11 @@ function dialSVG(value, color) {
 }
 
 function knobHTML(label, val, color, hot) {
+  const display = Number.isInteger(val) ? val : parseFloat(val).toFixed(1);
   return `<div class="knob${hot ? ' hot' : ''}">
     <div class="knob-label">${label}</div>
     <div class="dial">${dialSVG(val, color)}</div>
-    <div class="knob-num">${val}</div>
+    <div class="knob-num">${display}</div>
   </div>`;
 }
 
@@ -1764,6 +1769,7 @@ function renderSongLibrary() {
         <span class="sri-guitar">${s.guitarLabel}</span>
         <span class="sri-badge" style="${bs}">${s.toneBadge}</span>
         <span class="sri-context" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44;padding:3px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em">${s.context}</span>
+        <span class="sri-tuned ${s.tuned ? 'tuned' : ''}" onclick="toggleTuned(event,${s.id})" title="Mark as amp-tuned">${s.tuned ? '✓ Amp Tuned' : '○ Raw'}</span>
         <span class="sri-chevron">▶</span>
       </div>
       <div class="song-row-detail">
@@ -1865,7 +1871,7 @@ function startEdit(e, id) {
   const slider = (field, label, val, color) =>
     `<div class="edit-field">
       <label>${label}</label>
-      <input type="range" min="0" max="10" step="1" value="${val}" oninput="this.nextElementSibling.textContent=this.value" data-field="${field}">
+      <input type="range" min="0" max="10" step="0.5" value="${val}" oninput="this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)" data-field="${field}">
       <span class="eval">${val}</span>
     </div>`;
 
@@ -2097,6 +2103,16 @@ function reorderSongs(srcId, targetId) {
   renderSongLibrary();
 }
 
+function toggleTuned(e, id) {
+  e.stopPropagation();
+  const songs = getSavedSongs();
+  const song = songs.find(s => s.id === id);
+  if (!song) return;
+  song.tuned = !song.tuned;
+  setSavedSongs(songs);
+  renderSongLibrary();
+}
+
 function deleteSong(e, id) {
   e.stopPropagation();
   e.preventDefault();
@@ -2321,7 +2337,7 @@ ${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '
 
 For each setting, reason from the song's character — do not use middle values as defaults.
 
-Respond ONLY with valid JSON in this exact structure, all numbers 0-10:
+Respond ONLY with valid JSON in this exact structure, all numbers 0-10 in 0.5 increments (e.g. 4.5, 7, 6.5):
 {"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}`;
 
   try {
