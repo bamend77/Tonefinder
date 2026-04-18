@@ -835,7 +835,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.21 · April 14 2026 · 11:00am</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.25 · April 14 2026 · 1:00pm</div>
   </div>
 
   <div class="settings-card">
@@ -951,6 +951,17 @@ const DEFAULT_RULES = [
     ]
   },
   {
+    id: 'rule-10', order: 10, builtin: true,
+    title: 'EQ & Master Volume — Song Dictates All',
+    priority: 'Per Song Always',
+    bullets: [
+      'EQ must be dictated by the song — mid, presence, and bass should vary meaningfully based on what the song needs tonally. A scooped rock tone, a mid-forward warm tone, and a bright cutting tone should all look different on the dials. Never park EQ at fixed positions across songs.',
+      'Master volume controls power amp saturation and must be dictated by the song — not set to a default. Set it low to keep the power amp clean and articulate (tight preamp-driven character). Set it higher to push the power amp into natural warmth and compression (bigger, more pushed sound).',
+      'Songs like Under the Bridge want a clean power amp — low master volume. Songs like Black Dog want the power amp working hard — higher master volume. Let the song decide every time.',
+      'Channel volume and master volume work together — channel volume shapes preamp gain staging, master volume drives the power amp. Both must reflect what the song requires, not a preferred range.'
+    ]
+  },
+  {
     id: 'rule-3', order: 3, builtin: true,
     title: 'Guitar Selection Rules',
     priority: 'NO DEFAULT GUITAR',
@@ -1007,6 +1018,23 @@ const DEFAULT_RULES = [
       'Classic rock (including Led Zeppelin tones like Black Dog) = pushed amp breakup, not distortion.',
       'Eddie Vedder–style rhythm = mid-forward, edge-of-breakup, dynamic crunch.',
       'Avoid modern high-gain or heavily compressed tones unless explicitly requested.'
+    ]
+  },
+  {
+    id: 'rule-9', order: 9, builtin: true,
+    title: 'Boss RV-6 Reverb Mode Selection',
+    priority: 'Match Song Character',
+    bullets: [
+      'Keep reverb subtle and supportive — it should enhance the song, not define it. Level 1-3 typical, 4 max unless the song genuinely demands more.',
+      'Never default to Room mode. Always choose the mode that genuinely fits the song era and feel.',
+      'Spring: vintage, blues, rockabilly, early rock — warm and organic character.',
+      'Plate: clean studio tones, Beatles, Motown, polished rock — smooth and even.',
+      'Room: neutral everyday rock, grunge, modern rock — natural space.',
+      'Hall: large epic songs, anthemic rock, big ballads — expansive feel.',
+      'Dynamic: touch-sensitive songs where reverb should swell with playing dynamics.',
+      'Mod: songs needing shimmer or chorus-like texture.',
+      'Gate: tight percussive songs, 80s rock — reverb must not linger.',
+      'Shimmer: atmospheric, ambient, or ethereal tones only.'
     ]
   },
   {
@@ -2204,7 +2232,7 @@ async function recommendGuitar() {
   const isBand = document.getElementById('tog-band').checked;
   const context = isBand ? 'band mix' : 'playing without a band';
 
-  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (Classic Gain channel, Pentode/full power, edge-of-breakup philosophy — not high gain, not saturated). They are playing ${context}.
+  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (Classic Gain channel, Pentode/full power). They are playing ${context}.
 
 They have 3 guitars:
 - Gibson Les Paul (humbuckers)
@@ -2281,17 +2309,7 @@ async function getSettings() {
   const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
 
 ${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'No band (playing alone): fuller mids, moderate reverb ok — the guitar fills the full sonic space.'}
-${useReverb ? `Include Boss RV-6 reverb. Keep it subtle and supportive — it should enhance the song, not define it. Level 1-3 typical, 4 max unless the song genuinely demands more.
-Choose the mode based on the song's character:
-- Spring: vintage, blues, rockabilly, early rock — warm and organic
-- Plate: clean studio tones, Beatles, Motown, polished rock — smooth and even
-- Room: neutral everyday rock, grunge, modern rock — natural space
-- Hall: large epic songs, anthemic rock, big ballads — expansive
-- Dynamic: touch-sensitive songs where reverb should swell with playing
-- Mod: songs needing shimmer or chorus-like texture
-- Gate: tight percussive songs, 80s rock, where reverb must not linger
-- Shimmer: atmospheric, ambient, or ethereal tones only
-Always match the mode to the song era and feel. Never default to Room — choose what genuinely fits.` : ''}
+${useReverb ? 'Include Boss RV-6 reverb settings.' : ''}
 ${usePedals ? 'Pedals only if genuinely needed: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II).' : ''}
 
 Pickups: ${pickupGuide}
@@ -2300,7 +2318,7 @@ Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
 PLAYER KNOWLEDGE RULES — follow these strictly, they override your default judgment:
 ${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
 
-For each setting, reason from the song's character — do not use middle values as defaults. Channel Volume and Master Volume interact: channel volume sets preamp character, master drives power amp. These should vary significantly between songs.
+For each setting, reason from the song's character — do not use middle values as defaults.
 
 Respond ONLY with valid JSON in this exact structure, all numbers 0-10:
 {"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}`;
