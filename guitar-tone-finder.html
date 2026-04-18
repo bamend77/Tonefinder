@@ -829,7 +829,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.18 · April 14 2026 · 9:30am</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.21 · April 14 2026 · 11:00am</div>
   </div>
 
   <div class="settings-card">
@@ -1072,7 +1072,8 @@ function renderRules() {
     return `<div class="rule-item" id="ruleitem-${r.id}" draggable="true" data-rule-id="${r.id}"
         ondragstart="ruleDragStart(event)" ondragover="ruleDragOver(event)"
         ondrop="ruleDragDrop(event)" ondragend="ruleDragEnd(event)">
-      <span class="rule-drag-handle" onclick="event.stopPropagation()">⠿</span>
+      <span class="rule-drag-handle" onclick="event.stopPropagation()"
+        ontouchstart="ruleTouchStart(event)" ontouchmove="ruleTouchMove(event)" ontouchend="ruleTouchEnd(event)">⠿</span>
       <div style="flex:1;min-width:0">
         <div class="rule-header-row">
           <span class="rule-title">${r.title || 'Custom Rule'}</span>
@@ -1086,6 +1087,9 @@ function renderRules() {
   }).join('');
 }
 
+
+
+// ── RULE DESKTOP DRAG ──
 function ruleDragStart(e) {
   ruleDragSrcId = e.currentTarget.dataset.ruleId;
   e.currentTarget.style.opacity = '0.4';
@@ -1101,8 +1105,85 @@ function ruleDragDrop(e) {
   e.preventDefault();
   const targetId = e.currentTarget.dataset.ruleId;
   if (ruleDragSrcId === targetId) return;
+  reorderRules(ruleDragSrcId, targetId);
+}
+function ruleDragEnd(e) {
+  document.querySelectorAll('.rule-item').forEach(el => {
+    el.style.opacity = '';
+    el.classList.remove('rule-drag-over');
+  });
+}
+
+// ── RULE TOUCH DRAG ──
+let ruleTouchSrcId = null;
+let ruleTouchClone = null;
+let ruleTouchPlaceholder = null;
+let ruleTouchOffsetY = 0;
+
+function ruleTouchStart(e) {
+  const row = e.currentTarget.closest('.rule-item');
+  ruleTouchSrcId = row.dataset.ruleId;
+  const touch = e.touches[0];
+  const rect = row.getBoundingClientRect();
+  ruleTouchOffsetY = touch.clientY - rect.top;
+
+  ruleTouchClone = row.cloneNode(true);
+  ruleTouchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);border-radius:8px;background:var(--surface);`;
+  document.body.appendChild(ruleTouchClone);
+
+  ruleTouchPlaceholder = document.createElement('div');
+  ruleTouchPlaceholder.style.cssText = `height:${rect.height}px;background:var(--surface2);border:1px dashed var(--border2);border-radius:8px;margin-bottom:4px;`;
+  row.parentNode.insertBefore(ruleTouchPlaceholder, row);
+  row.style.display = 'none';
+  e.preventDefault();
+}
+
+function ruleTouchMove(e) {
+  if (!ruleTouchClone) return;
+  const touch = e.touches[0];
+  ruleTouchClone.style.top = (touch.clientY - ruleTouchOffsetY) + 'px';
+
+  ruleTouchClone.style.display = 'none';
+  const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  ruleTouchClone.style.display = '';
+  const hoverRow = elBelow ? elBelow.closest('.rule-item') : null;
+
+  document.querySelectorAll('.rule-item').forEach(el => el.classList.remove('rule-drag-over'));
+  if (hoverRow && hoverRow.dataset.ruleId !== ruleTouchSrcId) {
+    hoverRow.classList.add('rule-drag-over');
+    const rect = hoverRow.getBoundingClientRect();
+    if (touch.clientY < rect.top + rect.height / 2) {
+      hoverRow.parentNode.insertBefore(ruleTouchPlaceholder, hoverRow);
+    } else {
+      hoverRow.parentNode.insertBefore(ruleTouchPlaceholder, hoverRow.nextSibling);
+    }
+  }
+  e.preventDefault();
+}
+
+function ruleTouchEnd(e) {
+  if (!ruleTouchClone) return;
+  const touch = e.changedTouches[0];
+
+  ruleTouchClone.style.display = 'none';
+  const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  ruleTouchClone.style.display = '';
+  const hoverRow = elBelow ? elBelow.closest('.rule-item') : null;
+  const targetId = hoverRow ? hoverRow.dataset.ruleId : null;
+
+  const srcRow = document.getElementById('ruleitem-' + ruleTouchSrcId);
+  if (srcRow) srcRow.style.display = '';
+  if (ruleTouchClone) { ruleTouchClone.remove(); ruleTouchClone = null; }
+  if (ruleTouchPlaceholder) { ruleTouchPlaceholder.remove(); ruleTouchPlaceholder = null; }
+  document.querySelectorAll('.rule-item').forEach(el => el.classList.remove('rule-drag-over'));
+
+  if (targetId && targetId !== ruleTouchSrcId) reorderRules(ruleTouchSrcId, targetId);
+  ruleTouchSrcId = null;
+}
+
+function reorderRules(srcId, targetId) {
   const all = getAllRules();
-  const srcIdx = all.findIndex(r => r.id === ruleDragSrcId);
+  const srcIdx = all.findIndex(r => r.id === srcId);
   const tgtIdx = all.findIndex(r => r.id === targetId);
   if (srcIdx === -1 || tgtIdx === -1) return;
   const reordered = [...all];
@@ -1110,12 +1191,6 @@ function ruleDragDrop(e) {
   reordered.splice(tgtIdx, 0, moved);
   saveRuleOrder(reordered.map(r => r.id));
   renderRules();
-}
-function ruleDragEnd(e) {
-  document.querySelectorAll('.rule-item').forEach(el => {
-    el.style.opacity = '';
-    el.classList.remove('rule-drag-over');
-  });
 }
 
 function restoreDefaultRules() {
@@ -1642,7 +1717,8 @@ function renderSongLibrary() {
     return `<div class="song-row-item" id="sri-${s.id}" draggable="true" data-id="${s.id}"
         ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragend="dragEnd(event)">
       <div class="song-row-header" onclick="toggleSongRow(${s.id})">
-        <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</span>
+        <span class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder"
+          ontouchstart="touchDragStart(event)" ontouchmove="touchDragMove(event)" ontouchend="touchDragEnd(event)">⠿</span>
         <input type="checkbox" class="song-chk" data-id="${s.id}" checked
           onclick="event.stopPropagation()" onchange="updateSelection()"
           style="width:15px;height:15px;accent-color:var(--accent2);cursor:pointer;flex-shrink:0">
@@ -1876,25 +1952,107 @@ function toggleSongRow(id) {
 // ── DRAG TO REORDER ──
 let dragSrcId = null;
 
+// ── DESKTOP DRAG ──
 function dragStart(e) {
   dragSrcId = Number(e.currentTarget.dataset.id);
   e.currentTarget.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
 }
-
 function dragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
   document.querySelectorAll('.song-row-item').forEach(el => el.classList.remove('drag-over'));
   e.currentTarget.classList.add('drag-over');
 }
-
 function dragDrop(e) {
   e.preventDefault();
   const targetId = Number(e.currentTarget.dataset.id);
   if (dragSrcId === targetId) return;
+  reorderSongs(dragSrcId, targetId);
+}
+function dragEnd(e) {
+  document.querySelectorAll('.song-row-item').forEach(el => {
+    el.classList.remove('dragging');
+    el.classList.remove('drag-over');
+  });
+}
+
+// ── TOUCH DRAG ──
+let touchDragId = null;
+let touchPlaceholder = null;
+let touchClone = null;
+let touchOffsetY = 0;
+
+function touchDragStart(e) {
+  const row = e.currentTarget.closest('.song-row-item');
+  touchDragId = Number(row.dataset.id);
+  const touch = e.touches[0];
+  const rect = row.getBoundingClientRect();
+  touchOffsetY = touch.clientY - rect.top;
+
+  // Create floating clone
+  touchClone = row.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.85;z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);border-radius:8px;`;
+  document.body.appendChild(touchClone);
+
+  // Placeholder
+  touchPlaceholder = document.createElement('div');
+  touchPlaceholder.style.cssText = `height:${rect.height}px;background:var(--surface2);border:1px dashed var(--border2);border-radius:8px;margin-bottom:4px;`;
+  row.parentNode.insertBefore(touchPlaceholder, row);
+  row.style.display = 'none';
+  e.preventDefault();
+}
+
+function touchDragMove(e) {
+  if (!touchClone) return;
+  const touch = e.touches[0];
+  touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+  // Find which row we're hovering over
+  touchClone.style.display = 'none';
+  const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+  const hoverRow = elBelow ? elBelow.closest('.song-row-item') : null;
+
+  document.querySelectorAll('.song-row-item').forEach(el => el.classList.remove('drag-over'));
+  if (hoverRow && Number(hoverRow.dataset.id) !== touchDragId) {
+    hoverRow.classList.add('drag-over');
+    // Move placeholder
+    const rect = hoverRow.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (touch.clientY < midY) {
+      hoverRow.parentNode.insertBefore(touchPlaceholder, hoverRow);
+    } else {
+      hoverRow.parentNode.insertBefore(touchPlaceholder, hoverRow.nextSibling);
+    }
+  }
+  e.preventDefault();
+}
+
+function touchDragEnd(e) {
+  if (!touchClone) return;
+  const touch = e.changedTouches[0];
+
+  touchClone.style.display = 'none';
+  const elBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+  const hoverRow = elBelow ? elBelow.closest('.song-row-item') : null;
+  const targetId = hoverRow ? Number(hoverRow.dataset.id) : null;
+
+  // Restore original row
+  const srcRow = document.getElementById('sri-' + touchDragId);
+  if (srcRow) srcRow.style.display = '';
+  if (touchClone) { touchClone.remove(); touchClone = null; }
+  if (touchPlaceholder) { touchPlaceholder.remove(); touchPlaceholder = null; }
+  document.querySelectorAll('.song-row-item').forEach(el => el.classList.remove('drag-over'));
+
+  if (targetId && targetId !== touchDragId) reorderSongs(touchDragId, targetId);
+  touchDragId = null;
+}
+
+function reorderSongs(srcId, targetId) {
   const songs = getSavedSongs();
-  const srcIdx = songs.findIndex(s => s.id === dragSrcId);
+  const srcIdx = songs.findIndex(s => s.id === srcId);
   const tgtIdx = songs.findIndex(s => s.id === targetId);
   if (srcIdx === -1 || tgtIdx === -1) return;
   const reordered = [...songs];
@@ -1902,13 +2060,6 @@ function dragDrop(e) {
   reordered.splice(tgtIdx, 0, moved);
   setSavedSongs(reordered);
   renderSongLibrary();
-}
-
-function dragEnd(e) {
-  document.querySelectorAll('.song-row-item').forEach(el => {
-    el.classList.remove('dragging');
-    el.classList.remove('drag-over');
-  });
 }
 
 function deleteSong(e, id) {
@@ -2124,7 +2275,17 @@ async function getSettings() {
   const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
 
 ${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'No band (playing alone): fuller mids, moderate reverb ok — the guitar fills the full sonic space.'}
-${useReverb ? 'Include RV-6 reverb: subtle only, level 1-3 typical.' : ''}
+${useReverb ? `Include Boss RV-6 reverb. Keep it subtle and supportive — it should enhance the song, not define it. Level 1-3 typical, 4 max unless the song genuinely demands more.
+Choose the mode based on the song's character:
+- Spring: vintage, blues, rockabilly, early rock — warm and organic
+- Plate: clean studio tones, Beatles, Motown, polished rock — smooth and even
+- Room: neutral everyday rock, grunge, modern rock — natural space
+- Hall: large epic songs, anthemic rock, big ballads — expansive
+- Dynamic: touch-sensitive songs where reverb should swell with playing
+- Mod: songs needing shimmer or chorus-like texture
+- Gate: tight percussive songs, 80s rock, where reverb must not linger
+- Shimmer: atmospheric, ambient, or ethereal tones only
+Always match the mode to the song era and feel. Never default to Room — choose what genuinely fits.` : ''}
 ${usePedals ? 'Pedals only if genuinely needed: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II).' : ''}
 
 Pickups: ${pickupGuide}
