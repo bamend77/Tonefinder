@@ -833,7 +833,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.27 · April 14 2026 · 2:00pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.28 · April 14 2026 · 2:30pm</div>
   </div>
 
   <div class="settings-card">
@@ -1892,8 +1892,10 @@ function startEdit(e, id) {
   const isStrat = s.guitar === 'strat';
   const is335 = s.guitar === 'es335';
   const puPositions = isStrat
-    ? [1,2,3,4,5].map(n => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n}</option>`).join('')
-    : [1,2,3].map(n => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n}</option>`).join('');
+    ? [[1,'Bridge'],[2,'Bridge+Mid'],[3,'Middle'],[4,'Mid+Neck'],[5,'Neck']]
+        .map(([n,name]) => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n} — ${name}</option>`).join('')
+    : [[1,'Bridge Humbucker'],[2,'Both Humbuckers'],[3,'Neck Humbucker']]
+        .map(([n,name]) => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n} — ${name}</option>`).join('');
 
   editDiv.innerHTML = `<div class="edit-form">
     <div class="edit-row-label">Marshall DSL40 — Channel &amp; Mode</div>
@@ -1965,7 +1967,18 @@ function saveEdit(e, id) {
     else if (f === 'rv6level') { if (s.rv6) s.rv6.level = Number(el.value); }
     else if (f === 'rv6time') { if (s.rv6) s.rv6.time = Number(el.value); }
     else if (f === 'rv6tone') { if (s.rv6) s.rv6.tone = Number(el.value); }
-    else if (f === 'pickupPosition') s.pickupPosition = Number(el.value);
+    else if (f === 'pickupPosition') {
+      s.pickupPosition = Number(el.value);
+      // Update pickupName to match new position
+      const pos = s.pickupPosition;
+      if (s.guitar === 'strat') {
+        const stratNames = {1:'Bridge',2:'Bridge+Middle',3:'Middle',4:'Middle+Neck',5:'Neck'};
+        s.pickupName = stratNames[pos] || s.pickupName;
+      } else {
+        const humNames = {1:'Bridge Humbucker',2:'Both Humbuckers',3:'Neck Humbucker'};
+        s.pickupName = humNames[pos] || s.pickupName;
+      }
+    }
     else s[f] = Number(el.value);
   });
 
