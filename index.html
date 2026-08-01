@@ -863,7 +863,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.29 · August 1 2026 · 7:05pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.30 · August 1 2026 · 7:40pm</div>
   </div>
 
   <div class="settings-card">
@@ -2453,10 +2453,22 @@ function printSongs() {
     div.innerHTML = `<div class="phead"><h2>ToneFinder — Cheat Sheet</h2><p>Marshall DSL40 · Tone King Imperial MKII · Les Paul · Stratocaster · ES-335 · ${new Date().toLocaleDateString()}</p></div>${rows}`;
     document.body.appendChild(div);
 
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => div.remove(), 1000);
-    }, 50);
+    // Don't guess how long printing/rendering takes with a fixed timer — that's what caused
+    // blank pages on larger libraries. Instead, clean up only once the browser confirms the
+    // print flow is actually finished (fires whether the user prints, saves as PDF, or cancels).
+    let cleaned = false;
+    const cleanup = () => {
+      if (cleaned) return;
+      cleaned = true;
+      window.removeEventListener('afterprint', cleanup);
+      if (div.parentNode) div.remove();
+    };
+    window.addEventListener('afterprint', cleanup);
+    // Safety net only, in case a browser doesn't fire afterprint — generous so it never
+    // fires while printing is still genuinely in progress.
+    setTimeout(cleanup, 120000);
+
+    setTimeout(() => window.print(), 50);
 
   } catch(err) {
     alert('Print error: ' + err.message);
