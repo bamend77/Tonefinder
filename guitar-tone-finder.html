@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Marshall DSL40 tone recommendations for Les Paul, Stratocaster and ES-335">
-<title>ToneFinder — Marshall DSL40</title>
+<meta name="description" content="Marshall DSL40 and Tone King Imperial MKII tone recommendations for Les Paul, Stratocaster and ES-335">
+<title>ToneFinder</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -476,6 +476,15 @@
   .detail-knob .dk-val { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #ffffff; line-height: 1.1; }
   .detail-notes { font-size: 12px; color: var(--text); font-style: italic; line-height: 1.6; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 8px; }
 
+  /* AMP GROUP HEADER in My Songs */
+  .amp-group-header {
+    font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--accent2); padding: 10px 2px 6px;
+    border-bottom: 1px solid var(--border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .amp-group-header:first-child { padding-top: 0; }
+  .amp-group-count { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--dim); background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px; }
+
   /* MAIN GUITAR SELECTOR */
   .guitar-select-row { display: flex; gap: 8px; margin-bottom: 0; }
   .gsel-btn {
@@ -661,6 +670,8 @@
     .pr2-knob .kl { font-size: 6px; font-family: monospace; color: #888; text-transform: uppercase; }
     .pr2-knob .kv { font-size: 11px; font-weight: bold; color: #000; line-height: 1; }
     .pr2-sep { color: #ccc; font-size: 8px; margin: 0 1px; }
+    .pgroup-head { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #000; border-bottom: 1px solid #000; padding: 6px 2px 3px; margin-top: 6px; }
+    .pgroup-head:first-of-type { margin-top: 0; }
   }
 </style>
 </head>
@@ -681,7 +692,7 @@
 
   <div style="margin-bottom:1.5rem;padding-bottom:1.1rem;border-bottom:1px solid var(--border)">
     <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:0.04em;line-height:1">Tone<span style="color:var(--accent)">Finder</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;font-weight:300">Marshall DSL40 · Les Paul · Stratocaster · ES-335</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;font-weight:300">Marshall DSL40 · Tone King Imperial MKII · Les Paul · Stratocaster · ES-335</div>
   </div>
 
   <!-- Toggles -->
@@ -721,8 +732,21 @@
     </div>
   </div>
 
+  <!-- Amp selector for amp settings -->
+  <div class="mono-label">Select amp</div>
+  <div class="guitar-select-row" id="main-amp-select">
+    <button class="gsel-btn active" id="asel-dsl40" onclick="setMainAmp('dsl40', this)">
+      <div class="gsel-name">Marshall DSL40</div>
+      <div class="gsel-sub">40W Tube Head</div>
+    </button>
+    <button class="gsel-btn" id="asel-tk" onclick="setMainAmp('tk', this)">
+      <div class="gsel-name">Tone King Imperial MKII</div>
+      <div class="gsel-sub">20W Combo</div>
+    </button>
+  </div>
+
   <!-- Guitar selector for amp settings -->
-  <div class="mono-label">Select guitar for amp settings</div>
+  <div class="mono-label" style="margin-top:1.1rem">Select guitar for amp settings</div>
   <div class="guitar-select-row" id="main-guitar-select">
     <button class="gsel-btn active" id="gsel-lp" onclick="setMainGuitar('lp', this)">
       <div class="gsel-name">Les Paul</div>
@@ -770,7 +794,7 @@
     <div class="placeholder">Select your guitar and enter a song to get dialled-in amp settings</div>
   </div>
 
-  <footer>Marshall DSL40 · Gibson Les Paul · Fender Stratocaster · Epiphone ES-335 · Boss RV-6</footer>
+  <footer>Marshall DSL40 · Tone King Imperial MKII · Gibson Les Paul · Fender Stratocaster · Epiphone ES-335 · Boss RV-6</footer>
 </div>
 
 <!-- ══ MY SONGS PAGE ══ -->
@@ -833,7 +857,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.28 · April 14 2026 · 2:30pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.29 · August 1 2026 · 7:05pm</div>
   </div>
 
   <div class="settings-card">
@@ -877,7 +901,8 @@
     <h3>Your Rig</h3>
     <p>All recommendations are calibrated to this setup.</p>
     <div class="rig-info">
-      <div class="rig-item"><div class="ri-label">Amp</div><div class="ri-val">Marshall DSL40</div></div>
+      <div class="rig-item"><div class="ri-label">Amp 1</div><div class="ri-val">Marshall DSL40</div></div>
+      <div class="rig-item"><div class="ri-label">Amp 2</div><div class="ri-val">Tone King Imperial MKII (20W)</div></div>
       <div class="rig-item"><div class="ri-label">Reverb</div><div class="ri-val">Boss RV-6</div></div>
       <div class="rig-item"><div class="ri-label">Guitar 1</div><div class="ri-val">Gibson Les Paul</div></div>
       <div class="rig-item"><div class="ri-label">Guitar 2</div><div class="ri-val">Fender Stratocaster</div></div>
@@ -894,6 +919,12 @@
 let currentData = null;
 let selectedGuitar = null;
 let mainGuitar = 'lp'; // Guitar selected on main page
+let mainAmp = 'dsl40'; // Amp selected on main page
+
+const AMP_INFO = {
+  dsl40: { id: 'dsl40', label: 'Marshall DSL40', sub: '40W Tube Head' },
+  tk: { id: 'tk', label: 'Tone King Imperial MKII', sub: '20W Combo' }
+};
 
 function clearSongInput() {
   document.getElementById('song-input').value = '';
@@ -904,10 +935,21 @@ function clearSongInput() {
 
 function setMainGuitar(g, btn) {
   mainGuitar = g;
-  document.querySelectorAll('.gsel-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#main-guitar-select .gsel-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   // If there's already a result showing, re-render with new guitar
   if (currentData) renderResult(currentData, g);
+}
+
+function setMainAmp(a, btn) {
+  mainAmp = a;
+  document.querySelectorAll('#main-amp-select .gsel-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Amp knob layouts are completely different — don't try to relabel stale data, ask for a fresh lookup
+  if (currentData && currentData.amp && currentData.amp !== a) {
+    currentData = null;
+    document.getElementById('result-area').innerHTML = `<div class="placeholder">Amp changed to ${AMP_INFO[a].label} — hit "Get amp settings" again for this amp.</div>`;
+  }
 }
 
 function showPage(id, btn) {
@@ -1433,6 +1475,101 @@ function knobHTML(label, val, color, hot) {
   </div>`;
 }
 
+function ampPanelHTML(p) {
+  const info = AMP_INFO[p.amp] || AMP_INFO.dsl40;
+
+  if (p.amp === 'tk') {
+    const isLead = p.tkChannel === 'Lead';
+    return `
+    <div class="section-divider">
+      <div class="sdlabel">${info.label}</div>
+      <div class="sdline"></div>
+      <div class="chip-row">
+        <span class="chip on">${p.tkChannel} Channel</span>
+        <span class="chip ${p.tkTremoloOn ? 'on' : ''}">Tremolo ${p.tkTremoloOn ? 'ON' : 'OFF'}</span>
+      </div>
+    </div>
+
+    <div class="amp-panel">
+      <div class="amp-body">
+        <div class="amp-row">
+          <div class="amp-group">
+            <div class="amp-section-label">① ${p.tkChannel} Channel</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Volume', p.tkVolume, '#e8420a', false)}
+              ${isLead
+                ? knobHTML('Tone', p.tkTone, '#e8420a', false) + knobHTML('Mid-Bite', p.tkMidBite, '#e8420a', false)
+                : knobHTML('Treble', p.tkTreble, '#e8420a', false) + knobHTML('Bass', p.tkBass, '#e8420a', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">② Reverb</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Reverb', p.tkReverb, '#4a9eff', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">③ Tremolo</div>
+            <div class="amp-group-knobs">
+              ${p.tkTremoloOn
+                ? knobHTML('Speed', p.tkTremoloSpeed, '#f5a623', false) + knobHTML('Depth', p.tkTremoloDepth, '#f5a623', false)
+                : '<div style="font-size:11px;color:var(--dim);padding:8px 4px">Off for this song</div>'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Default: Marshall DSL40
+  return `
+    <div class="section-divider">
+      <div class="sdlabel">${info.label}</div>
+      <div class="sdline"></div>
+      <div class="chip-row">
+        <span class="chip on">
+          <span class="channel-mode-dot" style="background:${p.channelMode === 'red' ? '#e84040' : '#40c060'}"></span>${p.channel} · ${p.channelMode === 'red' ? 'Red' : 'Green'}
+        </span>
+        <span class="chip ${p.toneShift ? 'on' : ''}">Tone Shift ${p.toneShift ? 'ON' : 'OFF'}</span>
+      </div>
+    </div>
+
+    <div class="amp-panel">
+      <div class="amp-body">
+        <div class="amp-row">
+          <div class="amp-group">
+            <div class="amp-section-label">① Gain &amp; Ch. Vol</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Gain', p.gain, '#e8420a', p.gain > 7)}
+              ${knobHTML('Ch. Vol', p.channelVolume, '#e8420a', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">② Treble / Mid / Bass</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Treble', p.treble, '#f5a623', false)}
+              ${knobHTML('Mid', p.middle, '#f5a623', false)}
+              ${knobHTML('Bass', p.bass, '#f5a623', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">③ Presence / Resonance</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Presence', p.presence, '#4a9eff', false)}
+              ${knobHTML('Resonance', p.resonance, '#4a9eff', false)}
+            </div>
+          </div>
+          <div class="amp-group">
+            <div class="amp-section-label">④ Master</div>
+            <div class="amp-group-knobs">
+              ${knobHTML('Master', p.masterVolume, '#888', false)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderResult(p, guitar) {
   if (!p) return;
   const isLP = guitar === 'lp';
@@ -1523,51 +1660,7 @@ function renderResult(p, guitar) {
       <div style="font-size:11px;color:var(--dim);margin-top:6px">To try a different guitar — select it above and hit Get amp settings again</div>
     </div>
 
-    <div class="section-divider">
-      <div class="sdlabel">Marshall DSL40</div>
-      <div class="sdline"></div>
-      <div class="chip-row">
-        <span class="chip on">
-          <span class="channel-mode-dot" style="background:${p.channelMode === 'red' ? '#e84040' : '#40c060'}"></span>${p.channel} · ${p.channelMode === 'red' ? 'Red' : 'Green'}
-        </span>
-        <span class="chip ${p.toneShift ? 'on' : ''}">Tone Shift ${p.toneShift ? 'ON' : 'OFF'}</span>
-      </div>
-    </div>
-
-    <div class="amp-panel">
-      <div class="amp-body">
-        <div class="amp-row">
-          <div class="amp-group">
-            <div class="amp-section-label">① Gain &amp; Ch. Vol</div>
-            <div class="amp-group-knobs">
-              ${knobHTML('Gain', p.gain, '#e8420a', p.gain > 7)}
-              ${knobHTML('Ch. Vol', p.channelVolume, '#e8420a', false)}
-            </div>
-          </div>
-          <div class="amp-group">
-            <div class="amp-section-label">② Treble / Mid / Bass</div>
-            <div class="amp-group-knobs">
-              ${knobHTML('Treble', p.treble, '#f5a623', false)}
-              ${knobHTML('Mid', p.middle, '#f5a623', false)}
-              ${knobHTML('Bass', p.bass, '#f5a623', false)}
-            </div>
-          </div>
-          <div class="amp-group">
-            <div class="amp-section-label">③ Presence / Resonance</div>
-            <div class="amp-group-knobs">
-              ${knobHTML('Presence', p.presence, '#4a9eff', false)}
-              ${knobHTML('Resonance', p.resonance, '#4a9eff', false)}
-            </div>
-          </div>
-          <div class="amp-group">
-            <div class="amp-section-label">④ Master</div>
-            <div class="amp-group-knobs">
-              ${knobHTML('Master', p.masterVolume, '#888', false)}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    ${ampPanelHTML(p)}
 
     ${rv6HTML}
     ${pedalHTML}
@@ -1636,15 +1729,23 @@ function saveSong() {
     genre: currentData.genre,
     guitar,
     guitarLabel,
+    amp: p.amp || 'dsl40',
     context: isBand ? 'Band' : 'No Band',
     useReverb,
     toneBadge: p.toneBadge,
+    // Marshall DSL40 fields
     channel: p.channel,
     channelMode: p.channelMode,
     toneShift: p.toneShift,
     gain: p.gain, channelVolume: p.channelVolume,
     treble: p.treble, middle: p.middle, bass: p.bass,
     presence: p.presence, resonance: p.resonance, masterVolume: p.masterVolume,
+    // Tone King Imperial MKII fields
+    tkChannel: p.tkChannel,
+    tkVolume: p.tkVolume, tkTone: p.tkTone, tkMidBite: p.tkMidBite,
+    tkTreble: p.tkTreble, tkBass: p.tkBass,
+    tkReverb: p.tkReverb,
+    tkTremoloOn: p.tkTremoloOn, tkTremoloSpeed: p.tkTremoloSpeed, tkTremoloDepth: p.tkTremoloDepth,
     rv6: useReverb ? p.rv6 : null,
     pedals: p.pedals || [],
     volume: p.volume, tone: p.tone,
@@ -1653,7 +1754,7 @@ function saveSong() {
   };
 
   const songs = getSavedSongs();
-  const exists = songs.find(s => s.song === entry.song && s.guitar === entry.guitar && s.context === entry.context);
+  const exists = songs.find(s => s.song === entry.song && s.guitar === entry.guitar && s.context === entry.context && (s.amp || 'dsl40') === entry.amp);
   if (!exists) songs.push(entry);
   setSavedSongs(songs);
 
@@ -1675,7 +1776,9 @@ function renderSongLibrary() {
     'Heavy':  'background:#1a0808;color:#f08080;border:1px solid #4a1a1a'
   };
 
-  list.innerHTML = songs.map((s, i) => {
+  const renderRow = (s) => {
+    const isTK = s.amp === 'tk';
+    const ampLabel = isTK ? 'Tone King Imperial MKII' : 'Marshall DSL40';
     const bs = badgeStyles[s.toneBadge] || badgeStyles['Crunch'];
     const ctxColor = s.context === 'Band' ? '#4a9eff' : '#f5a623';
     const ctxBg = s.context === 'Band' ? '#0a1520' : '#1a0e0a';
@@ -1708,7 +1811,24 @@ function renderSongLibrary() {
       <div class="dk-val">${v}</div>
     </div>`;
 
-    const ampSections = `
+    const ampSections = isTK ? `
+      <div class="detail-amp-row">
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">① ${s.tkChannel} Channel</div>
+          <div class="detail-knob-row">
+            ${dkDial('Volume', s.tkVolume, '#e8420a')}
+            ${s.tkChannel === 'Lead' ? dkDial('Tone', s.tkTone, '#e8420a') + dkDial('Mid-Bite', s.tkMidBite, '#e8420a') : dkDial('Treble', s.tkTreble, '#e8420a') + dkDial('Bass', s.tkBass, '#e8420a')}
+          </div>
+        </div>
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">② Reverb</div>
+          <div class="detail-knob-row">${dkDial('Reverb', s.tkReverb, '#4a9eff')}</div>
+        </div>
+        <div class="detail-amp-group">
+          <div class="detail-amp-label">③ Tremolo</div>
+          <div class="detail-knob-row">${s.tkTremoloOn ? dkDial('Speed', s.tkTremoloSpeed, '#f5a623') + dkDial('Depth', s.tkTremoloDepth, '#f5a623') : '<div style="font-size:10px;color:var(--dim);padding:5px 0">Off</div>'}</div>
+        </div>
+      </div>` : `
       <div class="detail-amp-row">
         <div class="detail-amp-group">
           <div class="detail-amp-label">① Gain &amp; Ch.Vol</div>
@@ -1728,11 +1848,16 @@ function renderSongLibrary() {
         </div>
       </div>`;
 
-    const ampKnobsFlat = [
+    const ampKnobsFlat = (isTK ? [
+      {l:'Volume',v:s.tkVolume},
+      ...(s.tkChannel === 'Lead' ? [{l:'Tone',v:s.tkTone},{l:'Mid-Bite',v:s.tkMidBite}] : [{l:'Treble',v:s.tkTreble},{l:'Bass',v:s.tkBass}]),
+      {l:'Reverb',v:s.tkReverb},
+      ...(s.tkTremoloOn ? [{l:'Trem.Spd',v:s.tkTremoloSpeed},{l:'Trem.Dep',v:s.tkTremoloDepth}] : [])
+    ] : [
       {l:'Gain',v:s.gain},{l:'Ch.Vol',v:s.channelVolume},
       {l:'Treble',v:s.treble},{l:'Mid',v:s.middle},{l:'Bass',v:s.bass},
       {l:'Pres',v:s.presence},{l:'Reson',v:s.resonance},{l:'Master',v:s.masterVolume}
-    ].map(k => dk(k.l, k.v)).join('');
+    ]).map(k => dk(k.l, k.v)).join('');
 
     const rv6HTML = s.rv6 ? `
       <div class="detail-section">
@@ -1773,10 +1898,11 @@ function renderSongLibrary() {
         </div>
         <div id="view-${s.id}">
           <div class="detail-section">
-            <div class="detail-section-label">Marshall DSL40</div>
+            <div class="detail-section-label">${ampLabel}</div>
             <div class="detail-chips">
-              <span class="detail-chip hi"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${modeColor};margin-right:4px;vertical-align:middle"></span>${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'}</span>
-              <span class="detail-chip ${s.toneShift ? 'hi' : ''}">Tone Shift ${s.toneShift ? 'ON' : 'OFF'}</span>
+              ${isTK
+                ? `<span class="detail-chip hi">${s.tkChannel} Channel</span><span class="detail-chip ${s.tkTremoloOn ? 'hi' : ''}">Tremolo ${s.tkTremoloOn ? 'ON' : 'OFF'}</span>`
+                : `<span class="detail-chip hi"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${modeColor};margin-right:4px;vertical-align:middle"></span>${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'}</span><span class="detail-chip ${s.toneShift ? 'hi' : ''}">Tone Shift ${s.toneShift ? 'ON' : 'OFF'}</span>`}
             </div>
             ${ampSections}
           </div>
@@ -1795,7 +1921,7 @@ function renderSongLibrary() {
       </div>
       <div class="print-detail" style="display:none">
         <div class="detail-section">
-          <div class="detail-section-label">Marshall DSL40 — ${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'} · Tone Shift ${s.toneShift ? 'ON' : 'OFF'}</div>
+          <div class="detail-section-label">${isTK ? `${ampLabel} — ${s.tkChannel} Channel · Tremolo ${s.tkTremoloOn ? 'ON' : 'OFF'}` : `${ampLabel} — ${s.channel} · ${s.channelMode === 'red' ? 'Red' : 'Green'} · Tone Shift ${s.toneShift ? 'ON' : 'OFF'}`}</div>
           <div class="detail-knob-row">${ampKnobsFlat}</div>
         </div>
         ${rv6HTML}${pedalsHTML}
@@ -1805,7 +1931,17 @@ function renderSongLibrary() {
         <div class="detail-notes">${s.notes}</div>
       </div>
     </div>`;
-  }).join('');
+  };
+
+  const groups = [
+    { id: 'dsl40', label: 'Marshall DSL40', items: songs.filter(s => (s.amp || 'dsl40') === 'dsl40') },
+    { id: 'tk', label: 'Tone King Imperial MKII', items: songs.filter(s => s.amp === 'tk') }
+  ].filter(g => g.items.length);
+
+  list.innerHTML = groups.map(g => `
+    <div class="amp-group-header">${g.label} <span class="amp-group-count">${g.items.length}</span></div>
+    ${g.items.map(renderRow).join('')}
+  `).join('');
 
   // Show selection bar, update counts
   document.getElementById('selection-bar').style.display = 'flex';
@@ -1897,50 +2033,99 @@ function startEdit(e, id) {
     : [[1,'Bridge Humbucker'],[2,'Both Humbuckers'],[3,'Neck Humbucker']]
         .map(([n,name]) => `<option value="${n}" ${s.pickupPosition===n?'selected':''}>${n} — ${name}</option>`).join('');
 
-  editDiv.innerHTML = `<div class="edit-form">
-    <div class="edit-row-label">Marshall DSL40 — Channel &amp; Mode</div>
-    <div class="edit-row">
-      <div class="edit-field"><label>Channel</label><select data-field="channel">${channelOpts}</select></div>
-      <div class="edit-field"><label>Mode</label><select data-field="channelMode">${modeOpts}</select></div>
-      <div class="edit-field"><label>Tone Shift</label>
-        <select data-field="toneShift">
-          <option value="false" ${!s.toneShift?'selected':''}>Off</option>
-          <option value="true" ${s.toneShift?'selected':''}>On</option>
-        </select>
-      </div>
-    </div>
-    <div class="edit-row-label">① Gain &amp; Channel Volume</div>
-    <div class="edit-row">
-      ${slider('gain','Gain',s.gain,'#e8420a')}
-      ${slider('channelVolume','Ch.Vol',s.channelVolume,'#e8420a')}
-    </div>
-    <div class="edit-row-label">② Treble / Mid / Bass</div>
-    <div class="edit-row">
-      ${slider('treble','Treble',s.treble,'#f5a623')}
-      ${slider('middle','Mid',s.middle,'#f5a623')}
-      ${slider('bass','Bass',s.bass,'#f5a623')}
-    </div>
-    <div class="edit-row-label">③ Presence &amp; Resonance</div>
-    <div class="edit-row">
-      ${slider('presence','Presence',s.presence,'#4a9eff')}
-      ${slider('resonance','Resonance',s.resonance,'#4a9eff')}
-    </div>
-    <div class="edit-row-label">④ Master Volume</div>
-    <div class="edit-row">
-      ${slider('masterVolume','Master',s.masterVolume,'#888')}
-    </div>
-    ${rv6HTML}
+  const guitarEditRow = `
     <div class="edit-row-label">${s.guitarLabel} — Guitar</div>
     <div class="edit-row">
       ${slider('volume','Volume',s.volume,'#f5a623')}
       ${slider('tone','Tone',s.tone,'#f5a623')}
       <div class="edit-field"><label>Pickup Pos</label><select data-field="pickupPosition">${puPositions}</select></div>
-    </div>
-    <div class="edit-actions">
-      <button class="save-edit-btn" onclick="saveEdit(event,${id})">✓ Save changes</button>
-      <button class="cancel-edit-btn" onclick="cancelEdit(event,${id})">Cancel</button>
-    </div>
-  </div>`;
+    </div>`;
+
+  const isTK = s.amp === 'tk';
+
+  if (isTK) {
+    const tkChannelOpts = ['Rhythm','Lead'].map(c =>
+      `<option value="${c}" ${s.tkChannel === c ? 'selected' : ''}>${c}</option>`).join('');
+
+    editDiv.innerHTML = `<div class="edit-form">
+      <div class="edit-row-label">Tone King Imperial MKII — Channel</div>
+      <div class="edit-row">
+        <div class="edit-field"><label>Channel</label>
+          <select data-field="tkChannel" onchange="document.getElementById('tk-lead-${id}').style.display=(this.value==='Lead'?'contents':'none');document.getElementById('tk-rhythm-${id}').style.display=(this.value==='Rhythm'?'contents':'none')">${tkChannelOpts}</select>
+        </div>
+        ${slider('tkVolume','Volume',s.tkVolume,'#e8420a')}
+        <span id="tk-lead-${id}" style="display:${s.tkChannel === 'Lead' ? 'contents' : 'none'}">
+          ${slider('tkTone','Tone',s.tkTone ?? 5,'#e8420a')}
+          ${slider('tkMidBite','Mid-Bite',s.tkMidBite ?? 5,'#e8420a')}
+        </span>
+        <span id="tk-rhythm-${id}" style="display:${s.tkChannel === 'Rhythm' ? 'contents' : 'none'}">
+          ${slider('tkTreble','Treble',s.tkTreble ?? 5,'#e8420a')}
+          ${slider('tkBass','Bass',s.tkBass ?? 5,'#e8420a')}
+        </span>
+      </div>
+      <div class="edit-row-label">Reverb</div>
+      <div class="edit-row">
+        ${slider('tkReverb','Reverb',s.tkReverb,'#4a9eff')}
+      </div>
+      <div class="edit-row-label">Tremolo</div>
+      <div class="edit-row">
+        <div class="edit-field"><label>Tremolo</label>
+          <select data-field="tkTremoloOn">
+            <option value="false" ${!s.tkTremoloOn?'selected':''}>Off</option>
+            <option value="true" ${s.tkTremoloOn?'selected':''}>On</option>
+          </select>
+        </div>
+        ${slider('tkTremoloSpeed','Speed',s.tkTremoloSpeed ?? 0,'#f5a623')}
+        ${slider('tkTremoloDepth','Depth',s.tkTremoloDepth ?? 0,'#f5a623')}
+      </div>
+      ${rv6HTML}
+      ${guitarEditRow}
+      <div class="edit-actions">
+        <button class="save-edit-btn" onclick="saveEdit(event,${id})">✓ Save changes</button>
+        <button class="cancel-edit-btn" onclick="cancelEdit(event,${id})">Cancel</button>
+      </div>
+    </div>`;
+  } else {
+    editDiv.innerHTML = `<div class="edit-form">
+      <div class="edit-row-label">Marshall DSL40 — Channel &amp; Mode</div>
+      <div class="edit-row">
+        <div class="edit-field"><label>Channel</label><select data-field="channel">${channelOpts}</select></div>
+        <div class="edit-field"><label>Mode</label><select data-field="channelMode">${modeOpts}</select></div>
+        <div class="edit-field"><label>Tone Shift</label>
+          <select data-field="toneShift">
+            <option value="false" ${!s.toneShift?'selected':''}>Off</option>
+            <option value="true" ${s.toneShift?'selected':''}>On</option>
+          </select>
+        </div>
+      </div>
+      <div class="edit-row-label">① Gain &amp; Channel Volume</div>
+      <div class="edit-row">
+        ${slider('gain','Gain',s.gain,'#e8420a')}
+        ${slider('channelVolume','Ch.Vol',s.channelVolume,'#e8420a')}
+      </div>
+      <div class="edit-row-label">② Treble / Mid / Bass</div>
+      <div class="edit-row">
+        ${slider('treble','Treble',s.treble,'#f5a623')}
+        ${slider('middle','Mid',s.middle,'#f5a623')}
+        ${slider('bass','Bass',s.bass,'#f5a623')}
+      </div>
+      <div class="edit-row-label">③ Presence &amp; Resonance</div>
+      <div class="edit-row">
+        ${slider('presence','Presence',s.presence,'#4a9eff')}
+        ${slider('resonance','Resonance',s.resonance,'#4a9eff')}
+      </div>
+      <div class="edit-row-label">④ Master Volume</div>
+      <div class="edit-row">
+        ${slider('masterVolume','Master',s.masterVolume,'#888')}
+      </div>
+      ${rv6HTML}
+      ${guitarEditRow}
+      <div class="edit-actions">
+        <button class="save-edit-btn" onclick="saveEdit(event,${id})">✓ Save changes</button>
+        <button class="cancel-edit-btn" onclick="cancelEdit(event,${id})">Cancel</button>
+      </div>
+    </div>`;
+  }
 }
 
 function cancelEdit(e, id) {
@@ -1963,6 +2148,8 @@ function saveEdit(e, id) {
     if (f === 'channel') s.channel = el.value;
     else if (f === 'channelMode') s.channelMode = el.value;
     else if (f === 'toneShift') s.toneShift = el.value === 'true';
+    else if (f === 'tkChannel') s.tkChannel = el.value;
+    else if (f === 'tkTremoloOn') s.tkTremoloOn = el.value === 'true';
     else if (f === 'rv6mode') { if (s.rv6) s.rv6.mode = el.value; }
     else if (f === 'rv6level') { if (s.rv6) s.rv6.level = Number(el.value); }
     else if (f === 'rv6time') { if (s.rv6) s.rv6.time = Number(el.value); }
@@ -2176,15 +2363,14 @@ function printSongs() {
     const kv = (l, v) => `<div class="pr2-knob"><div class="kl">${l}</div><div class="kv">${v}</div></div>`;
     const sep = `<span class="pr2-sep">/</span>`;
 
-    const rows = songs.map(s => {
-      const mc = s.channelMode === 'red' ? '#c00' : '#060';
-      const chLabel = (s.channel.includes('Ultra') ? 'UG' : 'CG') + ' ' + (s.channelMode === 'red' ? '🔴' : '🟢');
+    const rowTemplate = s => {
+      const isTK = s.amp === 'tk';
 
       // RV-6 group (only if used)
       const rv6Group = s.rv6 ? `
         <div class="pr2-group">
           <span class="pr2-lbl">RV-6 ${s.rv6.mode}</span>
-          ${kv('Lvl', s.rv6.level)}${sep}${kv('Time', s.rv2 ? s.rv6.time : s.rv6.time)}${sep}${kv('Tone', s.rv6.tone)}
+          ${kv('Lvl', s.rv6.level)}${sep}${kv('Time', s.rv6.time)}${sep}${kv('Tone', s.rv6.tone)}
         </div>` : '';
 
       // Guitar group
@@ -2194,43 +2380,71 @@ function printSongs() {
           ${kv('Vol', s.volume)}${sep}${kv('Tone', s.tone)}${sep}<div class="pr2-knob"><div class="kl">Pickup</div><div class="kv" style="font-size:8px;white-space:nowrap">P${s.pickupPosition} ${s.pickupName}</div></div>
         </div>`;
 
+      const ampGroups = isTK ? `
+        <div class="pr2-group">
+          <span class="pr2-lbl">① ${s.tkChannel}</span>
+          ${kv('Vol', s.tkVolume)}${sep}${s.tkChannel === 'Lead' ? kv('Tone', s.tkTone) + sep + kv('MidBite', s.tkMidBite) : kv('Treble', s.tkTreble) + sep + kv('Bass', s.tkBass)}
+        </div>
+        <div class="pr2-group">
+          <span class="pr2-lbl">② Reverb</span>
+          ${kv('Reverb', s.tkReverb)}
+        </div>
+        <div class="pr2-group">
+          <span class="pr2-lbl">③ Tremolo</span>
+          ${s.tkTremoloOn ? kv('Speed', s.tkTremoloSpeed) + sep + kv('Depth', s.tkTremoloDepth) : '<span style="font-size:8px;color:#888">Off</span>'}
+        </div>` : `
+        <div class="pr2-group">
+          <span class="pr2-lbl">① Gain/ChVol</span>
+          ${kv('Gain', s.gain)}${sep}${kv('ChVol', s.channelVolume)}
+        </div>
+        <div class="pr2-group">
+          <span class="pr2-lbl">② EQ</span>
+          ${kv('Tre', s.treble)}${sep}${kv('Mid', s.middle)}${sep}${kv('Bass', s.bass)}
+        </div>
+        <div class="pr2-group">
+          <span class="pr2-lbl">③ Shape</span>
+          ${kv('Pres', s.presence)}${sep}${kv('Reson', s.resonance)}
+        </div>
+        <div class="pr2-group">
+          <span class="pr2-lbl">④ Master</span>
+          ${kv('Vol', s.masterVolume)}
+        </div>`;
+
+      const ampTag = isTK
+        ? `<span class="pr1-tag" style="background:#000;color:#fff;border-color:#000">${s.tkChannel} Channel</span>${s.tkTremoloOn ? '<span class="pr1-tag hi">Tremolo</span>' : ''}`
+        : `<span class="pr1-tag" style="background:#000;color:#fff;border-color:#000">${s.channel.includes('Ultra')?'Ultra Gain':'Clean/Classic'} · ${s.channelMode==='red'?'Red':'Green'}</span><span class="pr1-tag ${s.toneShift?'hi':''}">Tone Shift ${s.toneShift?'ON':'off'}</span>`;
+
       return `<div class="prow">
         <div class="pr1">
           <span class="pr1-title">${s.song} <span style="font-weight:normal;color:#555">— ${s.artist}</span></span>
           <span class="pr1-tag">${s.guitarLabel.replace('Gibson ','').replace('Fender ','').replace('Epiphone ','')}</span>
           <span class="pr1-tag">${s.context}</span>
-          <span class="pr1-tag" style="background:#000;color:#fff;border-color:#000">${s.channel.includes('Ultra')?'Ultra Gain':'Clean/Classic'} · ${s.channelMode==='red'?'Red':'Green'}</span>
-          <span class="pr1-tag ${s.toneShift?'hi':''}">Tone Shift ${s.toneShift?'ON':'off'}</span>
+          ${ampTag}
         </div>
         <div class="pr2">
-          <div class="pr2-group">
-            <span class="pr2-lbl">① Gain/ChVol</span>
-            ${kv('Gain', s.gain)}${sep}${kv('ChVol', s.channelVolume)}
-          </div>
-          <div class="pr2-group">
-            <span class="pr2-lbl">② EQ</span>
-            ${kv('Tre', s.treble)}${sep}${kv('Mid', s.middle)}${sep}${kv('Bass', s.bass)}
-          </div>
-          <div class="pr2-group">
-            <span class="pr2-lbl">③ Shape</span>
-            ${kv('Pres', s.presence)}${sep}${kv('Reson', s.resonance)}
-          </div>
-          <div class="pr2-group">
-            <span class="pr2-lbl">④ Master</span>
-            ${kv('Vol', s.masterVolume)}
-          </div>
+          ${ampGroups}
           ${rv6Group}
           ${guitarGroup}
         </div>
       </div>`;
-    }).join('');
+    };
+
+    const printGroups = [
+      { label: 'Marshall DSL40', items: songs.filter(s => (s.amp || 'dsl40') === 'dsl40') },
+      { label: 'Tone King Imperial MKII', items: songs.filter(s => s.amp === 'tk') }
+    ].filter(g => g.items.length);
+
+    const rows = printGroups.map(g => `
+      <div class="pgroup-head">${g.label}</div>
+      ${g.items.map(rowTemplate).join('')}
+    `).join('');
 
     const old = document.getElementById('print-area');
     if (old) old.remove();
 
     const div = document.createElement('div');
     div.id = 'print-area';
-    div.innerHTML = `<div class="phead"><h2>ToneFinder — Cheat Sheet</h2><p>Marshall DSL40 · Les Paul · Stratocaster · ES-335 · ${new Date().toLocaleDateString()}</p></div>${rows}`;
+    div.innerHTML = `<div class="phead"><h2>ToneFinder — Cheat Sheet</h2><p>Marshall DSL40 · Tone King Imperial MKII · Les Paul · Stratocaster · ES-335 · ${new Date().toLocaleDateString()}</p></div>${rows}`;
     document.body.appendChild(div);
 
     setTimeout(() => {
@@ -2255,20 +2469,22 @@ async function recommendGuitar() {
 
   const isBand = document.getElementById('tog-band').checked;
   const context = isBand ? 'band mix' : 'playing without a band';
+  const ampInfo = AMP_INFO[mainAmp] || AMP_INFO.dsl40;
+  const ampDesc = mainAmp === 'tk' ? 'Tone King Imperial MKII (20W boutique combo, Rhythm/Lead channels)' : 'Marshall DSL40 (Classic Gain channel, Pentode/full power)';
 
-  const prompt = `You are a guitar tone expert. The player has a Marshall DSL40 tube amp (Classic Gain channel, Pentode/full power). They are playing ${context}.
+  const prompt = `You are a guitar tone expert. The player has a ${ampDesc}. They are playing ${context}.
 
 They have 3 guitars:
 - Gibson Les Paul (humbuckers)
 - Fender Stratocaster (single-coils)
 - Epiphone ES-335 (semi-hollow humbuckers)
 
-For the song "${song}", recommend the best guitar based on the song's tonal character and how each guitar suits that on a Marshall DSL40.
+For the song "${song}", recommend the best guitar based on the song's tonal character and how each guitar suits that on a ${ampInfo.label}.
 
 PLAYER KNOWLEDGE RULES (must guide this recommendation):
 ${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
 
-Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — reference the song character and why this guitar suits it on a Marshall DSL40"}`;
+Respond ONLY with valid JSON: {"guitar":"Les Paul|Stratocaster|ES-335","reason":"2 sentences — reference the song character and why this guitar suits it on a ${ampInfo.label}"}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2330,7 +2546,37 @@ async function getSettings() {
   const usePedals = document.getElementById('tog-pedals').checked;
   const hint = document.getElementById('hint-input').value.trim();
 
-  const prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
+  const rulesBlock = getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n');
+  const pedalsSchema = `"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}]`;
+  const rv6Schema = `"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'}`;
+
+  const amp = mainAmp;
+  let prompt;
+
+  if (amp === 'tk') {
+    prompt = `Guitar tone expert. Tone King Imperial MKII (20W boutique combo, class-A voiced, with separate Rhythm and Lead channels, built-in spring reverb, and built-in tremolo). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
+
+${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'No band (playing alone): fuller mids, moderate reverb ok — the guitar fills the full sonic space.'}
+${usePedals ? 'Pedals only if genuinely needed: Tube Screamer TS9 (Drive/Tone/Level 0-10) or Boss DS-2 (Dist/Tone/Level 0-10, Mode Turbo I or II).' : ''}
+${useReverb ? 'The player may also engage the external Boss RV-6 pedal in addition to the amp\'s built-in reverb — include Boss RV-6 settings too.' : ''}
+
+Amp channels — choose one based on the song's character:
+- Lead channel controls: Volume, Tone, Mid-Bite (Mid-Bite dials in upper-mid presence/cut, useful for lead lines cutting through a mix).
+- Rhythm channel controls: Volume, Treble, Bass.
+Both channels share the amp's built-in Reverb (0-10) and built-in Tremolo (Speed 0-10, Depth 0-10) — only turn tremolo on when the song's character genuinely calls for it, otherwise leave it off.
+
+Pickups: ${pickupGuide}
+Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
+
+PLAYER KNOWLEDGE RULES — follow these strictly where they apply. Some of these rules reference the Marshall DSL40 specifically (its gain channels, Red/Green mode, Tone Shift, RV-6 pedal mode selection); this is a different amp, so translate their underlying tonal intent (song-driven reasoning, avoiding lazy defaults, dynamic response) to this amp's own controls rather than applying Marshall-specific knob names:
+${rulesBlock}
+
+For each setting, reason from the song's character — do not use middle values as defaults.
+
+Respond ONLY with valid JSON in this exact structure, all numbers 0-10 in 0.5 increments (e.g. 4.5, 7, 6.5):
+{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","tkChannel":"Rhythm|Lead","tkVolume":0,"tkTone":0,"tkMidBite":0,"tkTreble":0,"tkBass":0,"tkReverb":0,"tkTremoloOn":false,"tkTremoloSpeed":0,"tkTremoloDepth":0,${rv6Schema},${pedalsSchema},"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}`;
+  } else {
+    prompt = `Guitar tone expert. Marshall DSL40 (Pentode, attenuator in use). Guitar: ${guitarName}. Song: "${song}". Context: ${isBand ? 'band mix' : 'playing without a band'}.${hint ? ' Player note: ' + hint : ''}
 
 ${isBand ? 'Band mix: cut bass, mid clarity, less reverb — tone must sit in a mix.' : 'No band (playing alone): fuller mids, moderate reverb ok — the guitar fills the full sonic space.'}
 ${useReverb ? 'Include Boss RV-6 reverb settings.' : ''}
@@ -2340,12 +2586,13 @@ Pickups: ${pickupGuide}
 Guitar Vol (0-10, usually 10), Tone knob (0=dark,10=bright, always specify).
 
 PLAYER KNOWLEDGE RULES — follow these strictly, they override your default judgment:
-${getAllRules().map(r => r.bullets ? r.bullets.map(b => '- ' + b).join('\n') : '- ' + r.text).join('\n')}
+${rulesBlock}
 
 For each setting, reason from the song's character — do not use middle values as defaults.
 
 Respond ONLY with valid JSON in this exact structure, all numbers 0-10 in 0.5 increments (e.g. 4.5, 7, 6.5):
-{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,"rv6":${useReverb ? '{"mode":"Room|Hall|Plate|Spring|Mod|Shimmer|Dynamic|Gate","level":0,"time":0,"tone":0,"tip":"sentence"}' : 'null'},"pedals":[{"name":"Tube Screamer","role":"Overdrive Boost","knobs":[{"label":"Drive","value":0},{"label":"Tone","value":0},{"label":"Level","value":0}],"tip":"sentence"}],"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}`;
+{"song":"exact name","artist":"name","genre":"genre","toneBadge":"Clean|Crunch|Lead|Heavy","channel":"Clean/Classic Gain|Ultra Gain","channelMode":"green|red","toneShift":false,"gain":0,"channelVolume":0,"treble":0,"middle":0,"bass":0,"presence":0,"resonance":0,"masterVolume":0,${rv6Schema},${pedalsSchema},"volume":0,"tone":0,"pickupPosition":1,"pickupName":"name","pickupDesc":"sentence","notes":"sentence"}`;
+  }
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2374,6 +2621,7 @@ Respond ONLY with valid JSON in this exact structure, all numbers 0-10 in 0.5 in
     const text = data.content.map(i => i.text || '').join('');
     const clean = text.replace(/```json|```/g, '').trim();
     const s = JSON.parse(clean);
+    s.amp = amp;
     currentData = s;
     selectedGuitar = guitar;
     renderResult(s, guitar);
