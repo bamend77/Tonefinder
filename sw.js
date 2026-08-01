@@ -1,4 +1,4 @@
-const CACHE = 'tonefinder-v20260413';
+const CACHE = 'tonefinder-v2.30';
 const ASSETS = [
   '/',
   '/index.html',
@@ -12,7 +12,7 @@ self.addEventListener('install', e => {
   );
 });
 
-// Activate — clean up old caches
+// Activate — clean up old caches immediately
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -21,17 +21,38 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Fetch — serve from cache, fall back to network
+// Fetch
 self.addEventListener('fetch', e => {
   // Always go to network for API calls
   if (e.request.url.includes('api.anthropic.com')) {
     e.respondWith(fetch(e.request));
     return;
   }
-  // Cache-first for everything else
+
+  // Network-first for the app shell (the HTML page itself). This is the fix:
+  // code changes need to reach users on their very next load, not get stuck
+  // behind a stale cache-first hit. Falls back to cache only if offline.
+  const isHTML = e.request.mode === 'navigate' ||
+    e.request.destination === 'document' ||
+    e.request.url.endsWith('/index.html') ||
+    e.request.url.endsWith('/');
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request).then(response => {
+        if (response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (fonts etc.) — these rarely change and
+  // benefit from instant offline-friendly loading.
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).then(response => {
-      // Cache successful GET responses
       if (e.request.method === 'GET' && response.status === 200) {
         const clone = response.clone();
         caches.open(CACHE).then(cache => cache.put(e.request, clone));
