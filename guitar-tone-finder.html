@@ -662,7 +662,7 @@
     .pr1-title { font-size: 10px; font-weight: bold; color: #000; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pr1-tag { font-size: 7px; font-family: monospace; padding: 1px 4px; border: 1px solid #ccc; background: #fff; border-radius: 2px; color: #333; white-space: nowrap; }
     .pr1-tag.hi { background: #fff3e0; border-color: #e0a020; color: #7a4a00; }
-    .pr2 { display: flex; align-items: center; gap: 0; padding: 3px 6px; }
+    .pr2 { display: flex; align-items: center; gap: 0; padding: 3px 6px; flex-wrap: wrap; row-gap: 4px; }
     .pr2-group { display: flex; align-items: center; gap: 3px; padding-right: 7px; margin-right: 7px; border-right: 1px solid #ddd; }
     .pr2-group:last-child { border-right: none; padding-right: 0; margin-right: 0; }
     .pr2-lbl { font-size: 6px; font-family: monospace; color: #888; text-transform: uppercase; margin-right: 2px; white-space: nowrap; }
@@ -857,7 +857,7 @@
   <div class="settings-header">
     <div class="settings-title">App <span>Settings</span></div>
     <div class="settings-sub">Manage your API key and rig info</div>
-    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.31 · August 1 2026 · 8:10pm</div>
+    <div style="margin-top:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em">Version 2.34 · August 1 2026 · 9:10pm</div>
   </div>
 
   <div class="settings-card">
@@ -1076,6 +1076,18 @@ const DEFAULT_RULES = [
       'Mod: songs needing shimmer or chorus-like texture.',
       'Gate: tight percussive songs, 80s rock — reverb must not linger.',
       'Shimmer: atmospheric, ambient, or ethereal tones only.'
+    ]
+  },
+  {
+    id: 'rule-11', order: 11, builtin: true,
+    title: 'Tone King Imperial MKII — Reverb Source Preference',
+    priority: 'Amp Reverb First',
+    bullets: [
+      'On the Tone King Imperial MKII, the amp\'s own built-in reverb (tkReverb) is the default and preferred reverb source — it should cover the large majority of songs on its own.',
+      'This rule only matters when the player has also enabled the Boss RV-6 external reverb pedal. If the pedal is off, this rule is moot — only tkReverb exists.',
+      'When the RV-6 pedal is enabled alongside the Tone King, be conservative: only add the RV-6 on top of the amp\'s reverb if the song absolutely requires a texture the amp\'s own reverb genuinely cannot deliver (e.g. a distinct shimmer, gated, or modulated reverb character the built-in spring reverb cannot approximate).',
+      'Default to leaving the RV-6 unused (rv6: null) for the Tone King in the ordinary case, even with the pedal enabled — do not add it just because it is available.',
+      'This preference is specific to the Tone King Imperial MKII. It does not apply to the Marshall DSL40, which has no built-in reverb of its own and relies on the RV-6 pedal as its sole reverb source whenever reverb is requested.'
     ]
   },
   {
@@ -1754,7 +1766,13 @@ function saveSong() {
   };
 
   const songs = getSavedSongs();
-  const exists = songs.find(s => s.song === entry.song && s.guitar === entry.guitar && s.context === entry.context && (s.amp || 'dsl40') === entry.amp);
+  const exists = songs.find(s =>
+    s.song === entry.song &&
+    s.guitar === entry.guitar &&
+    s.context === entry.context &&
+    (s.amp || 'dsl40') === entry.amp &&
+    (entry.amp !== 'tk' || s.tkChannel === entry.tkChannel)
+  );
   if (!exists) songs.push(entry);
   setSavedSongs(songs);
 
@@ -1886,6 +1904,7 @@ function renderSongLibrary() {
           <div class="sri-meta">${s.artist} · ${s.genre}</div>
         </div>
         <span class="sri-guitar">${s.guitarLabel}</span>
+        ${isTK ? `<span class="sri-guitar" style="background:#0a1a1a;color:#4ad0c0;border-color:#0d4a44">${s.tkChannel}</span>` : ''}
         <span class="sri-badge" style="${bs}">${s.toneBadge}</span>
         <span class="sri-context" style="background:${ctxBg};color:${ctxColor};border:1px solid ${ctxColor}44;padding:3px 8px;border-radius:3px;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em">${s.context}</span>
         <span class="sri-tuned ${s.tuned ? 'tuned' : ''}" onclick="toggleTuned(event,${s.id})" title="Mark as amp-tuned">${s.tuned ? '✓ Amp Tuned' : '○ Raw'}</span>
@@ -2373,6 +2392,19 @@ function printSongs() {
           ${kv('Lvl', s.rv6.level)}${sep}${kv('Time', s.rv6.time)}${sep}${kv('Tone', s.rv6.tone)}
         </div>` : '';
 
+      // Pedals group (only if used) — one knob-group per active pedal
+      const pedalsGroup = (s.pedals && s.pedals.length)
+        ? s.pedals.map(pd => `
+        <div class="pr2-group">
+          <span class="pr2-lbl">${pd.name}</span>
+          ${(pd.knobs || []).map(k => kv(k.label, k.value)).join(sep)}
+        </div>`).join('')
+        : '';
+
+      const pedalsTag = (s.pedals && s.pedals.length)
+        ? `<span class="pr1-tag hi">${s.pedals.map(pd => pd.name).join(' + ')}</span>`
+        : '';
+
       // Guitar group
       const guitarGroup = `
         <div class="pr2-group">
@@ -2420,10 +2452,12 @@ function printSongs() {
           <span class="pr1-tag">${s.guitarLabel.replace('Gibson ','').replace('Fender ','').replace('Epiphone ','')}</span>
           <span class="pr1-tag">${s.context}</span>
           ${ampTag}
+          ${pedalsTag}
         </div>
         <div class="pr2">
           ${ampGroups}
           ${rv6Group}
+          ${pedalsGroup}
           ${guitarGroup}
         </div>
       </div>`;
